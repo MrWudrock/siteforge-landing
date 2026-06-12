@@ -28,7 +28,7 @@ SMTP_PASS = os.environ.get("SMTP_PASS", "")
 SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USER)
 SENDGRID_KEY = os.environ.get("SENDGRID_API_KEY", "")
 SENDGRID_FROM = os.environ.get("SENDGRID_FROM", "paternmod@gmail.com")
-BASE_URL = os.environ.get("BASE_URL", "https://siteforge-bot.onrender.com")
+BASE_URL = os.environ.get("BASE_URL", "https://bot.symplesite.ru")
 BOT_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
 DB_PATH = "/tmp/siteforge.db"
