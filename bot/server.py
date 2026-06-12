@@ -323,6 +323,7 @@ def generate_site(answers):
 
 def make_zip(order_id, html_content):
     buf = io.BytesIO()
+    revision_link = f"{BASE_URL}/order/{order_id}/revision"
     try:
         ztype = zipfile.ZIP_DEFLATED
     except:
