@@ -4,7 +4,7 @@ __pycache__/
 templates/
 static/
 app.py
-requirements.txt
+/requirements.txt
 
 # OS
 .DS_Store
