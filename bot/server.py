@@ -1,4 +1,4 @@
-import os, json, uuid, io, zipfile, smtplib, logging, threading
+import os, json, uuid, io, zipfile, smtplib, logging, threading, sqlite3
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -31,35 +31,62 @@ SENDGRID_FROM = os.environ.get("SENDGRID_FROM", "paternmod@gmail.com")
 BASE_URL = os.environ.get("BASE_URL", "https://siteforge-bot.onrender.com")
 BOT_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-ORDERS_FILE = "/tmp/siteforge_orders.json"
+DB_PATH = "/tmp/siteforge.db"
+
+
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""CREATE TABLE IF NOT EXISTS orders (
+            order_id TEXT PRIMARY KEY,
+            name TEXT, phone TEXT, email TEXT, description TEXT,
+            status TEXT DEFAULT 'new',
+            answers TEXT, html TEXT,
+            created TEXT
+        )""")
+    log.info(f"DB ready at {DB_PATH}")
+
+
+def row_to_order(row):
+    if not row:
+        return None
+    return {
+        "order_id": row[0], "name": row[1], "phone": row[2],
+        "email": row[3], "description": row[4], "status": row[5],
+        "answers": json.loads(row[6]) if row[6] else {},
+        "html": row[7], "created": row[8]
+    }
+
 
 def load_orders():
-    if os.path.exists(ORDERS_FILE):
-        try:
-            with open(ORDERS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, UnicodeDecodeError) as e:
-            log.error(f"load_orders corrupted file: {e}, returning empty")
-            return {}
-    return {}
+    with sqlite3.connect(DB_PATH) as conn:
+        rows = conn.execute("SELECT * FROM orders ORDER BY created DESC").fetchall()
+    return {r[0]: row_to_order(r) for r in rows}
 
-def save_orders(data):
-    try:
-        with open(ORDERS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except (UnicodeEncodeError, TypeError, ValueError) as e:
-        log.error(f"save_orders failed with ensure_ascii=False: {e}, retrying with True")
-        with open(ORDERS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=True, indent=2)
 
 def get_order(order_id):
-    orders = load_orders()
-    return orders.get(order_id)
+    with sqlite3.connect(DB_PATH) as conn:
+        row = conn.execute("SELECT * FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+    return row_to_order(row)
+
 
 def set_order(order_id, data):
-    orders = load_orders()
-    orders[order_id] = data
-    save_orders(orders)
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""INSERT OR REPLACE INTO orders
+            (order_id, name, phone, email, description, status, answers, html, created)
+            VALUES (?,?,?,?,?,?,?,?,?)""", (
+            order_id,
+            data.get("name", ""),
+            data.get("phone", ""),
+            data.get("email", ""),
+            data.get("description", ""),
+            data.get("status", "new"),
+            json.dumps(data.get("answers", {}), ensure_ascii=True),
+            data.get("html"),
+            data.get("created", datetime.now().isoformat())
+        ))
+        conn.commit()
+
+init_db()
 
 CLARIFYING_QUESTIONS = [
     {"key": "business_type", "q": "Какой у вас бизнес или проект? Опишите чем занимаетесь.", "hint": "например: кофейня, школа английского, стоматология, портфолио фотографа"},
