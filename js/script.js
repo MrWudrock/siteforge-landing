@@ -96,23 +96,27 @@
       const email = document.getElementById('email').value.trim();
       const description = document.getElementById('description').value.trim();
 
-      const subject = encodeURIComponent('Заявка: сайт за 1000₽ — SiteForge AI');
-      const body = encodeURIComponent(
-        'Новая заявка на сайт за 1000₽\n\n' +
-        'Имя: ' + name + '\n' +
-        'Телефон: ' + phone + '\n' +
-        'Email: ' + (email || 'не указан') + '\n\n' +
-        'Описание сайта:\n' + description + '\n\n' +
-        '---\nОтправлено с siteforge-ai.ru'
-      );
+      const payload = { name, phone, email, description };
 
-      // Replace with your real email
-      const mailto = 'mailto:flash83@list.ru?subject=' + subject + '&body=' + body;
+      // Try webhook (Render), fallback to mailto
+      const WEBHOOK_URL = 'https://siteforge-bot.onrender.com/webhook';
 
-      // Try mailto, always show success modal
-      try {
-        window.location.href = mailto;
-      } catch (_) { /* ignore */ }
+      fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(function () {
+        const subject = encodeURIComponent('Заявка: сайт за 1000₽ — SiteForge AI');
+        const body = encodeURIComponent(
+          'Новая заявка на сайт за 1000₽\n\n' +
+          'Имя: ' + name + '\n' +
+          'Телефон: ' + phone + '\n' +
+          'Email: ' + (email || 'не указан') + '\n\n' +
+          'Описание сайта:\n' + description + '\n\n' +
+          '---\nОтправлено с siteforge-ai.ru'
+        );
+        window.location.href = 'mailto:flash83@list.ru?subject=' + subject + '&body=' + body;
+      });
 
       if (modal) {
         modal.classList.add('open');
