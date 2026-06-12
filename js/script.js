@@ -100,7 +100,7 @@
 
       const payload = { name, phone, email, description };
 
-      const WEBHOOK_URL = 'https://siteforge-bot.onrender.com/webhook';
+      const WEBHOOK_URL = 'https://bot.symplesite.ru/webhook';
 
       fetch(WEBHOOK_URL, {
         method: 'POST',
@@ -110,7 +110,7 @@
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (data.order_id) {
-          var link = 'https://siteforge-bot.onrender.com/order/' + data.order_id + '/questions';
+          var link = 'https://bot.symplesite.ru/order/' + data.order_id + '/questions';
           if (modalLink) { modalLink.href = link; modalLink.textContent = link; }
           if (modalOrderId) { modalOrderId.textContent = data.order_id; }
         }
