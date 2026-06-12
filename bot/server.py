@@ -20,6 +20,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN", "8634108372:AAFD4jb69EGfqsNQr1ySLR6C0gB-
 CHAT_ID = os.environ.get("CHAT_ID", "1000583946")
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+DEEPSEEK_KEY = os.environ.get("DEEPSEEK_KEY", "")
 SMTP_SERVER = os.environ.get("SMTP_SERVER", "")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "")
@@ -210,6 +211,27 @@ def call_claude(tz_text):
     return html.strip()
 
 
+def call_deepseek(tz_text):
+    resp = requests.post(
+        "https://api.deepseek.com/v1/chat/completions",
+        headers={"Authorization": f"Bearer {DEEPSEEK_KEY}", "Content-Type": "application/json"},
+        json={"model": "deepseek-chat", "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": tz_text}
+        ], "temperature": 0.7, "max_tokens": 8192},
+        timeout=120
+    )
+    if resp.status_code != 200:
+        log.error(f"DeepSeek error: {resp.status_code} {resp.text[:200]}")
+        return None
+    html = resp.json()["choices"][0]["message"]["content"]
+    html = html.strip()
+    if html.startswith("```html"): html = html[7:]
+    elif html.startswith("```"): html = html[3:]
+    if html.endswith("```"): html = html[:-3]
+    return html.strip()
+
+
 def generate_demo(tz_text, name):
     return f"""<!DOCTYPE html>
 <html lang="ru">
@@ -270,6 +292,12 @@ def generate_site(answers):
 
     if not tz_text.strip():
         tz_text = "Создай одностраничный сайт с секциями: герой, о нас, услуги, контакты."
+
+    if DEEPSEEK_KEY:
+        log.info("Trying DeepSeek...")
+        result = call_deepseek(tz_text)
+        if result:
+            return result
 
     if ANTHROPIC_KEY:
         log.info("Trying Claude...")
