@@ -317,7 +317,11 @@ def generate_site(answers):
 
 def make_zip(order_id, html_content):
     buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+    try:
+        ztype = zipfile.ZIP_DEFLATED
+    except:
+        ztype = zipfile.ZIP_STORED
+    with zipfile.ZipFile(buf, "w", ztype) as z:
         z.writestr("index.html", html_content)
         instructions = f"""\
 ==========================================
@@ -404,6 +408,10 @@ def admin_orders():
 def debug_smtp():
     import html as h
     lines = []
+
+    lines.append(f"<b>DeepSeek:</b> {'✅ configured' if DEEPSEEK_KEY else '❌ not set'}<br>")
+    lines.append(f"<b>OpenAI:</b> {'✅ configured' if OPENAI_KEY else '❌ not set'}<br>")
+    lines.append(f"<b>Claude:</b> {'✅ configured' if ANTHROPIC_KEY else '❌ not set'}<br><br>")
 
     if SENDGRID_KEY:
         lines.append(f"<b>SendGrid:</b> configured (key ends with ...{h.escape(SENDGRID_KEY[-8:])})<br>")
