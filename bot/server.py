@@ -10,7 +10,7 @@ import requests
 from flask import Flask, request, jsonify, render_template, send_file, redirect, url_for
 from flask_cors import CORS
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("siteforge")
 
 app = Flask(__name__, template_folder="templates")
@@ -269,6 +269,14 @@ def send_site_notification(name, order_id):
 @app.route("/")
 def index():
     return f"SiteForge AI Bot is running<br><a href='/debug'>Debug SMTP</a>"
+
+import traceback
+
+@app.errorhandler(500)
+def handle_500(e):
+    tb = traceback.format_exc()
+    log.error(f"500 error: {tb}")
+    return f"<pre>{tb}</pre>", 500
 
 @app.route("/debug")
 def debug_smtp():
