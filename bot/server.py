@@ -29,7 +29,29 @@ SENDGRID_FROM = os.environ.get("SENDGRID_FROM", "paternmod@gmail.com")
 BASE_URL = os.environ.get("BASE_URL", "https://siteforge-bot.onrender.com")
 BOT_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-orders = {}
+ORDERS_FILE = "orders.json"
+
+def load_orders():
+    if os.path.exists(ORDERS_FILE):
+        try:
+            with open(ORDERS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_orders(data):
+    with open(ORDERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def get_order(order_id):
+    orders = load_orders()
+    return orders.get(order_id)
+
+def set_order(order_id, data):
+    orders = load_orders()
+    orders[order_id] = data
+    save_orders(orders)
 
 CLARIFYING_QUESTIONS = [
     {"key": "business_type", "q": "Какой у вас бизнес или проект? Опишите чем занимаетесь.", "hint": "например: кофейня, школа английского, стоматология, портфолио фотографа"},
@@ -288,11 +310,11 @@ def webhook():
     description = data.get("description", "")
 
     order_id = uuid.uuid4().hex[:12].upper()
-    orders[order_id] = {
+    set_order(order_id, {
         "name": name, "phone": phone, "email": email,
         "description": description, "status": "new",
         "answers": {}, "html": None, "created": datetime.now().isoformat()
-    }
+    })
 
     link = f"{BASE_URL}/order/{order_id}/questions"
     msg = (
@@ -311,7 +333,7 @@ def webhook():
 
 @app.route("/order/<order_id>/questions", methods=["GET"])
 def questions_page(order_id):
-    order = orders.get(order_id)
+    order = get_order(order_id)
     if not order:
         return "<h1>\u0417\u0430\u043A\u0430\u0437 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D</h1><p>\u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u0441\u0441\u044B\u043B\u043A\u0443 \u0438\u043B\u0438 \u043E\u0431\u0440\u0430\u0442\u0438\u0442\u0435\u0441\u044C \u0432 \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u043A\u0443</p>", 404
     if order["status"] in ("generating", "done"):
@@ -321,31 +343,32 @@ def questions_page(order_id):
 
 @app.route("/order/<order_id>/questions", methods=["POST"])
 def questions_submit(order_id):
-    order = orders.get(order_id)
+    order = get_order(order_id)
     if not order:
         return jsonify({"error": "not found"}), 404
     answers = {q["key"]: request.form.get(q["key"], "") for q in CLARIFYING_QUESTIONS}
     order["answers"] = answers
     order["status"] = "generating"
+    set_order(order_id, order)
     send_tg(f"\U0001F916 \u0413\u0435\u043D\u0435\u0440\u0438\u0440\u0443\u044E \u0441\u0430\u0439\u0442 \u0434\u043B\u044F \u0437\u0430\u043A\u0430\u0437\u0430 #{order_id}...")
 
     html = generate_site(answers)
     if html:
         order["html"] = html
         order["status"] = "done"
-        buf = make_zip(order_id, html)
-        order["zip"] = buf
+        set_order(order_id, order)
         send_site_notification(order["name"], order_id)
         return redirect(url_for("site_page", order_id=order_id))
     else:
         order["status"] = "error"
+        set_order(order_id, order)
         send_tg(f"\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438 \u0437\u0430\u043A\u0430\u0437\u0430 #{order_id}")
         return "<h1>\u041E\u0448\u0438\u0431\u043A\u0430 \u0433\u0435\u043D\u0435\u0440\u0430\u0446\u0438\u0438</h1><p>\u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u043E\u0437\u0436\u0435</p>", 500
 
 
 @app.route("/order/<order_id>/site")
 def site_page(order_id):
-    order = orders.get(order_id)
+    order = get_order(order_id)
     if not order:
         return "<h1>Not found</h1>", 404
     status = order["status"]
@@ -358,12 +381,12 @@ def site_page(order_id):
 
 @app.route("/order/<order_id>/download")
 def download_site(order_id):
-    order = orders.get(order_id)
-    if not order or not order.get("zip"):
+    order = get_order(order_id)
+    if not order or not order.get("html"):
         return "<h1>Not available</h1>", 404
-    order["zip"].seek(0)
+    buf = make_zip(order_id, order["html"])
     return send_file(
-        order["zip"],
+        buf,
         mimetype="application/zip",
         as_attachment=True,
         download_name=f"siteforge-{order_id}.zip"
@@ -372,7 +395,7 @@ def download_site(order_id):
 
 @app.route("/order/<order_id>/revision", methods=["GET"])
 def revision_page(order_id):
-    order = orders.get(order_id)
+    order = get_order(order_id)
     if not order:
         return "<h1>Not found</h1>", 404
     return render_template("revision.html", order=order, order_id=order_id, base_url=BASE_URL)
@@ -380,7 +403,7 @@ def revision_page(order_id):
 
 @app.route("/order/<order_id>/revision", methods=["POST"])
 def revision_submit(order_id):
-    order = orders.get(order_id)
+    order = get_order(order_id)
     if not order:
         return jsonify({"error": "not found"}), 404
     revision_text = request.form.get("revision", "")
@@ -391,17 +414,18 @@ def revision_submit(order_id):
     answers["_revision"] = revision_text
     order["answers"] = answers
     order["status"] = "generating"
+    set_order(order_id, order)
     send_tg(f"\U0001F527 \u041F\u0440\u0430\u0432\u043A\u0438 \u0434\u043B\u044F \u0437\u0430\u043A\u0430\u0437\u0430 #{order_id}: {revision_text[:100]}")
 
     html = generate_site(answers)
     if html:
         order["html"] = html
         order["status"] = "done"
-        buf = make_zip(order_id, html)
-        order["zip"] = buf
+        set_order(order_id, order)
         send_tg(f"\u2705 \u041F\u0440\u0430\u0432\u043A\u0438 \u0433\u043E\u0442\u043E\u0432\u044B \u0434\u043B\u044F \u0437\u0430\u043A\u0430\u0437\u0430 #{order_id}\n\U0001F4E6 {BASE_URL}/order/{order_id}/download")
     else:
         order["status"] = "error"
+        set_order(order_id, order)
         send_tg(f"\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u043F\u0440\u0438 \u043F\u0440\u0430\u0432\u043A\u0430\u0445 #{order_id}")
 
     return redirect(url_for("site_page", order_id=order_id))
