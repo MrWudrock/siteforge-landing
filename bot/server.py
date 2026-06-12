@@ -258,28 +258,12 @@ def index():
 
 @app.route("/debug")
 def debug_smtp():
+    import html as h
+    lines = [f"<b>Config:</b> {h.escape(SMTP_SERVER)}:{SMTP_PORT} | User: {h.escape(SMTP_USER)}<br><br>"]
+
     if not SMTP_USER or not SMTP_PASS:
         return "SMTP not configured. Set SMTP_USER and SMTP_PASS env vars."
-    import html as h
-    lines = []
-    lines.append(f"<b>Current config:</b> {h.escape(SMTP_SERVER)}:{SMTP_PORT}<br><br>")
 
-    for server, port in [("smtp.mail.ru", 465), ("smtp.mail.ru", 587), ("smtp.yandex.ru", 465), ("smtp.gmail.com", 587)]:
-        lines.append(f"<b>Testing {server}:{port}...</b> ")
-        try:
-            srv = smtplib.SMTP_SSL(server, port, timeout=8)
-            srv.quit()
-            lines.append(f"<span style='color:green'>\u2705 Connected!</span><br>")
-        except:
-            try:
-                srv = smtplib.SMTP(server, port, timeout=8)
-                srv.starttls()
-                srv.quit()
-                lines.append(f"<span style='color:green'>\u2705 Connected (STARTTLS)!</span><br>")
-            except Exception as e2:
-                lines.append(f"<span style='color:red'>\u274C {h.escape(str(e2))}</span><br>")
-
-    lines.append("<br><b>Testing your SMTP config:</b><br>")
     try:
         use_ssl = (SMTP_PORT == 465)
         if use_ssl:
@@ -289,7 +273,8 @@ def debug_smtp():
             srv.starttls()
         srv.login(SMTP_USER, SMTP_PASS)
         srv.quit()
-        lines.append(f"<span style='color:green'>\u2705 Auth OK! SMTP fully working.</span><br>")
+        lines.append("<span style='color:green'>\u2705 Auth OK!</span><br>")
+
         msg = MIMEMultipart("alternative")
         msg["From"] = SMTP_FROM
         msg["To"] = SMTP_USER
@@ -303,13 +288,15 @@ def debug_smtp():
         srv2.login(SMTP_USER, SMTP_PASS)
         srv2.sendmail(SMTP_FROM, [SMTP_USER], msg.as_string())
         srv2.quit()
-        lines.append(f"<span style='color:green'>\u2705 Test email sent to {h.escape(SMTP_USER)}!</span><br>")
+        lines.append(f"<span style='color:green'>\u2705 Test email sent!</span><br>")
+        lines.append(f"Check inbox: {h.escape(SMTP_USER)}<br>")
     except smtplib.SMTPAuthenticationError:
         lines.append("<span style='color:red'>\u274C SMTP Auth error.</span><br>")
-        lines.append("<b>For mail.ru:</b> Settings -> Password and Security -> App password -> Generate<br>")
-        lines.append("Use that app password as SMTP_PASS, NOT your regular password.<br>")
+        lines.append("For mail.ru: Settings → Password and Security → App password → Generate<br>")
+        lines.append("Use that app password as SMTP_PASS (NOT your regular password).<br>")
     except Exception as e:
-        lines.append(f"<span style='color:red'>\u274C Error: {h.escape(str(e))}</span><br>")
+        lines.append(f"<span style='color:red'>\u274C {h.escape(str(e))}</span><br>")
+        lines.append("Tip: Try changing SMTP_PORT to 587 (STARTTLS) in env vars.<br>")
     return "".join(lines)
 
 
