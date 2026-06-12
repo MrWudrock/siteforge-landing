@@ -42,40 +42,7 @@ CLARIFYING_QUESTIONS = [
     {"key": "audience", "q": "Кто ваша целевая аудитория?", "hint": "например: молодые родители, бизнесмены, студенты, пенсионеры"},
 ]
 
-QUESTIONS_EMAIL_TPL = """\
-<h2 style="color:#3b82f6;">\u2709\ufe0f Уточняем детали вашего сайта</h2>
-<p>Здравствуйте, <strong>{name}</strong>!</p>
-<p>Мы получили вашу заявку на создание сайта. Чтобы AI-агент сделал идеальный сайт, ответьте на несколько вопросов:</p>
-<p style="text-align:center;margin:30px 0">
-  <a href="{link}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;">
-    \U0001F4AC Ответить на вопросы
-  </a>
-</p>
-<p style="color:#888;font-size:13px;">Ссылка действительна 7 дней. Если возникли вопросы, пишите в Telegram @SiteForgeAIBot</p>
-"""
 
-SITE_READY_TPL = """\
-<h2 style="color:#22c55e;">\u2705 Ваш сайт готов!</h2>
-<p>Здравствуйте, <strong>{name}</strong>!</p>
-<p>AI-агент создал сайт по вашему ТЗ. Скачайте архив с файлами и инструкцией по запуску:</p>
-<p style="text-align:center;margin:30px 0">
-  <a href="{link}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;">
-    \U0001F4E6 Скачать сайт
-  </a>
-</p>
-<p>Если нужно что-то поправить — <a href="{revision_link}">оставьте запрос на правку</a>.</p>
-<p style="color:#888;font-size:13px;">SiteForge AI — любой сайт за 1000\u20BD</p>
-"""
-
-REVISION_CONFIRM_TPL = """\
-<h2 style="color:#f97316;">\U0001F527 Правки приняты</h2>
-<p>Здравствуйте, <strong>{name}</strong>!</p>
-<p>Мы получили ваш запрос на правки. AI-агент вносит изменения...</p>
-<p>Обновлённая версия будет доступна через несколько минут по той же ссылке:</p>
-<p style="text-align:center;margin:20px 0">
-  <a href="{link}" style="color:#3b82f6;">{link}</a>
-</p>
-"""
 
 PROMO_TEXT = """
 \u26A1 \u0421\u0430\u0439\u0442 \u0437\u0430 1000\u20BD \u0437\u0430 24 \u0447\u0430\u0441\u0430!
@@ -267,13 +234,14 @@ SiteForge AI \u2014 \u041B\u044E\u0431\u043E\u0439 \u0441\u0430\u0439\u0442 \u04
     return buf
 
 
-def send_site_email(name, email, order_id):
+def send_site_notification(name, order_id):
     site_link = f"{BASE_URL}/order/{order_id}/download"
-    revision_link = f"{BASE_URL}/order/{order_id}/revision"
-    html = SITE_READY_TPL.format(name=name, link=site_link,
-                                  revision_link=revision_link)
-    send_email(email, f"\u2705 \u0412\u0430\u0448 \u0441\u0430\u0439\u0442 \u0433\u043E\u0442\u043E\u0432! \u0417\u0430\u043A\u0430\u0437 #{order_id}", html)
-    send_tg(f"\u2705 \u0421\u0430\u0439\u0442 \u0433\u043E\u0442\u043E\u0432 \u0434\u043B\u044F \u0437\u0430\u043A\u0430\u0437\u0430 #{order_id} \u2014 {name} \u2014 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u043E \u043D\u0430 {email}")
+    send_tg(
+        f"\u2705 <b>\u0421\u0430\u0439\u0442 \u0433\u043E\u0442\u043E\u0432!</b>\n\n"
+        f"\U0001F464 {name}\n"
+        f"\U0001F517 \u0417\u0430\u043A\u0430\u0437 #{order_id}\n"
+        f"\U0001F4E6 \u0421\u043A\u0430\u0447\u0430\u0442\u044C: {site_link}"
+    )
 
 
 @app.route("/")
@@ -326,24 +294,17 @@ def webhook():
         "answers": {}, "html": None, "created": datetime.now().isoformat()
     }
 
+    link = f"{BASE_URL}/order/{order_id}/questions"
     msg = (
         f"\U0001F525 <b>\u041D\u043E\u0432\u0430\u044F \u0437\u0430\u044F\u0432\u043A\u0430! \u0421\u0430\u0439\u0442 \u0437\u0430 1000\u20BD</b>\n\n"
         f"\U0001F464 <b>\u0418\u043C\u044F:</b> {name}\n"
         f"\U0001F4DE <b>\u0422\u0435\u043B\u0435\u0444\u043E\u043D:</b> {phone}\n"
         f"\U0001F4E7 <b>Email:</b> {email}\n"
         f"\U0001F4CB <b>\u041E\u043F\u0438\u0441\u0430\u043D\u0438\u0435:</b>\n{description}\n\n"
-        f"\U0001F517 <b>\u0417\u0430\u043A\u0430\u0437:</b> #{order_id}"
+        f"\U0001F517 <b>\u0417\u0430\u043A\u0430\u0437:</b> #{order_id}\n"
+        f"\U0001F4AC <b>\u0421\u0441\u044B\u043B\u043A\u0430 \u0434\u043B\u044F \u043A\u043B\u0438\u0435\u043D\u0442\u0430:</b>\n{link}"
     )
     send_tg(msg)
-
-    if email:
-        q_link = f"{BASE_URL}/order/{order_id}/questions"
-        html = QUESTIONS_EMAIL_TPL.format(name=name, link=q_link)
-        send_email(email,
-                   f"\u2709\ufe0f \u0423\u0442\u043E\u0447\u043D\u0438\u0442\u0435 \u0434\u0435\u0442\u0430\u043B\u0438 \u0434\u043B\u044F \u0441\u0430\u0439\u0442\u0430 \u2014 \u0417\u0430\u043A\u0430\u0437 #{order_id}",
-                   html)
-        msg2 = f"\u2709\ufe0f \u041E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u043E \u043F\u0438\u0441\u044C\u043C\u043E \u0441 \u0432\u043E\u043F\u0440\u043E\u0441\u0430\u043C\u0438 \u043A\u043B\u0438\u0435\u043D\u0442\u0443 #{order_id}"
-        send_tg(msg2)
 
     return jsonify({"ok": True, "order_id": order_id}), 200
 
@@ -374,7 +335,7 @@ def questions_submit(order_id):
         order["status"] = "done"
         buf = make_zip(order_id, html)
         order["zip"] = buf
-        send_site_email(order["name"], order["email"], order_id)
+        send_site_notification(order["name"], order_id)
         return redirect(url_for("site_page", order_id=order_id))
     else:
         order["status"] = "error"
@@ -438,14 +399,7 @@ def revision_submit(order_id):
         order["status"] = "done"
         buf = make_zip(order_id, html)
         order["zip"] = buf
-        revision_link = f"{BASE_URL}/order/{order_id}/revision"
-        html_email = REVISION_CONFIRM_TPL.format(name=order["name"],
-                                                   link=f"{BASE_URL}/order/{order_id}/download",
-                                                   revision_link=revision_link)
-        send_email(order["email"],
-                   f"\U0001F527 \u0421\u0430\u0439\u0442 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D! \u0417\u0430\u043A\u0430\u0437 #{order_id}",
-                   html_email)
-        send_tg(f"\u2705 \u041F\u0440\u0430\u0432\u043A\u0438 \u0433\u043E\u0442\u043E\u0432\u044B \u0434\u043B\u044F \u0437\u0430\u043A\u0430\u0437\u0430 #{order_id}")
+        send_tg(f"\u2705 \u041F\u0440\u0430\u0432\u043A\u0438 \u0433\u043E\u0442\u043E\u0432\u044B \u0434\u043B\u044F \u0437\u0430\u043A\u0430\u0437\u0430 #{order_id}\n\U0001F4E6 {BASE_URL}/order/{order_id}/download")
     else:
         order["status"] = "error"
         send_tg(f"\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u043F\u0440\u0438 \u043F\u0440\u0430\u0432\u043A\u0430\u0445 #{order_id}")

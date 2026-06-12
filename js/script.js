@@ -86,6 +86,8 @@
   const form = document.getElementById('orderForm');
   const modal = document.getElementById('successModal');
   const closeModal = document.getElementById('closeModal');
+  const modalLink = document.getElementById('modalOrderLink');
+  const modalOrderId = document.getElementById('modalOrderId');
 
   if (form) {
     form.addEventListener('submit', function (e) {
@@ -98,25 +100,22 @@
 
       const payload = { name, phone, email, description };
 
-      // Try webhook (Render), fallback to mailto
       const WEBHOOK_URL = 'https://siteforge-bot.onrender.com/webhook';
 
       fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-      }).catch(function () {
-        const subject = encodeURIComponent('Заявка: сайт за 1000₽ — SiteForge AI');
-        const body = encodeURIComponent(
-          'Новая заявка на сайт за 1000₽\n\n' +
-          'Имя: ' + name + '\n' +
-          'Телефон: ' + phone + '\n' +
-          'Email: ' + (email || 'не указан') + '\n\n' +
-          'Описание сайта:\n' + description + '\n\n' +
-          '---\nОтправлено с siteforge-ai.ru'
-        );
-        window.location.href = 'mailto:flash83@list.ru?subject=' + subject + '&body=' + body;
-      });
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.order_id) {
+          var link = 'https://siteforge-bot.onrender.com/order/' + data.order_id + '/questions';
+          if (modalLink) { modalLink.href = link; modalLink.textContent = link; }
+          if (modalOrderId) { modalOrderId.textContent = data.order_id; }
+        }
+      })
+      .catch(function () {});
 
       if (modal) {
         modal.classList.add('open');
