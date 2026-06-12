@@ -121,7 +121,12 @@ def _send_email(to, subject, html, reply_to=None):
         if reply_to:
             msg["Reply-To"] = reply_to
         msg.attach(MIMEText(html, "html"))
-        srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15)
+        use_ssl = (SMTP_PORT == 465)
+        if use_ssl:
+            srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15)
+        else:
+            srv = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
+            srv.starttls()
         srv.login(SMTP_USER, SMTP_PASS)
         srv.sendmail(SMTP_FROM, [to], msg.as_string())
         srv.quit()
@@ -257,31 +262,52 @@ def debug_smtp():
         return "SMTP not configured. Set SMTP_USER and SMTP_PASS env vars."
     import html as h
     lines = []
-    lines.append(f"<b>SMTP Server:</b> {h.escape(SMTP_SERVER)}:{SMTP_PORT}<br>")
-    lines.append(f"<b>SMTP User:</b> {h.escape(SMTP_USER)}<br>")
-    lines.append(f"<b>SMTP From:</b> {h.escape(SMTP_FROM)}<br>")
-    lines.append("<b>Testing connection...</b><br><br>")
+    lines.append(f"<b>Current config:</b> {h.escape(SMTP_SERVER)}:{SMTP_PORT}<br><br>")
+
+    for server, port in [("smtp.mail.ru", 465), ("smtp.mail.ru", 587), ("smtp.yandex.ru", 465), ("smtp.gmail.com", 587)]:
+        lines.append(f"<b>Testing {server}:{port}...</b> ")
+        try:
+            srv = smtplib.SMTP_SSL(server, port, timeout=8)
+            srv.quit()
+            lines.append(f"<span style='color:green'>\u2705 Connected!</span><br>")
+        except:
+            try:
+                srv = smtplib.SMTP(server, port, timeout=8)
+                srv.starttls()
+                srv.quit()
+                lines.append(f"<span style='color:green'>\u2705 Connected (STARTTLS)!</span><br>")
+            except Exception as e2:
+                lines.append(f"<span style='color:red'>\u274C {h.escape(str(e2))}</span><br>")
+
+    lines.append("<br><b>Testing your SMTP config:</b><br>")
     try:
-        srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
+        use_ssl = (SMTP_PORT == 465)
+        if use_ssl:
+            srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
+        else:
+            srv = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10)
+            srv.starttls()
         srv.login(SMTP_USER, SMTP_PASS)
         srv.quit()
-        lines.append("<span style='color:green'>\u2705 SMTP connection OK! Auth successful.</span><br>")
+        lines.append(f"<span style='color:green'>\u2705 Auth OK! SMTP fully working.</span><br>")
         msg = MIMEMultipart("alternative")
         msg["From"] = SMTP_FROM
         msg["To"] = SMTP_USER
         msg["Subject"] = "SiteForge Bot - SMTP Test"
         msg.attach(MIMEText("<h1>Test</h1><p>SMTP works!</p>", "html"))
-        srv2 = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
+        if use_ssl:
+            srv2 = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
+        else:
+            srv2 = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10)
+            srv2.starttls()
         srv2.login(SMTP_USER, SMTP_PASS)
         srv2.sendmail(SMTP_FROM, [SMTP_USER], msg.as_string())
         srv2.quit()
-        lines.append(f"<span style='color:green'>\u2705 Test email sent to {h.escape(SMTP_USER)}</span><br>")
+        lines.append(f"<span style='color:green'>\u2705 Test email sent to {h.escape(SMTP_USER)}!</span><br>")
     except smtplib.SMTPAuthenticationError:
-        lines.append("<span style='color:red'>\u274C SMTP Auth error. Generate APP PASSWORD on mail.ru:</span><br>")
-        lines.append("1. https://mail.ru -> \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 -> \u041f\u0430\u0440\u043e\u043b\u044c \u0438 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u044c<br>")
-        lines.append("2. \u041f\u0430\u0440\u043e\u043b\u044c \u0434\u043b\u044f \u0432\u043d\u0435\u0448\u043d\u0435\u0433\u043e \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u044f -> \u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c<br>")
-        lines.append("3. \u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435: SiteForge Bot<br>")
-        lines.append("4. \u0421\u043a\u043e\u043f\u0438\u0440\u0443\u0439\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c \u0438 \u0437\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u0432 SMTP_PASS<br>")
+        lines.append("<span style='color:red'>\u274C SMTP Auth error.</span><br>")
+        lines.append("<b>For mail.ru:</b> Settings -> Password and Security -> App password -> Generate<br>")
+        lines.append("Use that app password as SMTP_PASS, NOT your regular password.<br>")
     except Exception as e:
         lines.append(f"<span style='color:red'>\u274C Error: {h.escape(str(e))}</span><br>")
     return "".join(lines)
