@@ -29,7 +29,7 @@ SENDGRID_FROM = os.environ.get("SENDGRID_FROM", "paternmod@gmail.com")
 BASE_URL = os.environ.get("BASE_URL", "https://siteforge-bot.onrender.com")
 BOT_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-ORDERS_FILE = "orders.json"
+ORDERS_FILE = "/tmp/siteforge_orders.json"
 
 def load_orders():
     if os.path.exists(ORDERS_FILE):
@@ -277,6 +277,16 @@ def handle_500(e):
     tb = traceback.format_exc()
     log.error(f"500 error: {tb}")
     return f"<pre>{tb}</pre>", 500
+
+@app.route("/admin/orders")
+def admin_orders():
+    all_orders = load_orders()
+    lines = [f"<b>Total orders:</b> {len(all_orders)}<br><br>"]
+    for oid, odata in list(all_orders.items())[:10]:
+        lines.append(f"<b>{oid}</b>: {odata.get('name')} | status: {odata.get('status')} | html: {'yes' if odata.get('html') else 'no'}<br>")
+    if not all_orders:
+        lines.append("No orders found.<br>")
+    return "".join(lines)
 
 @app.route("/debug")
 def debug_smtp():
