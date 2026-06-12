@@ -1,9 +1,9 @@
 # Flask app (separate project)
 __pycache__/
 *.pyc
-templates/
-static/
-app.py
+/templates/
+/static/
+/app.py
 /requirements.txt
 
 # OS

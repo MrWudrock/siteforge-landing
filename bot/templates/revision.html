@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Правки — SiteForge AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; background: #0a0a0f; color: #e8e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card { background: #12121a; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 40px; max-width: 560px; width: 100%; }
+    h1 { font-size: 1.6rem; margin-bottom: 8px; }
+    .sub { color: #8888a0; font-size: 0.9rem; margin-bottom: 24px; }
+    .q-group { margin-bottom: 20px; }
+    label { display: block; font-weight: 600; margin-bottom: 8px; }
+    textarea { width: 100%; padding: 12px 14px; background: #1a1a26; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; color: #e8e8f0; font-family: Inter, sans-serif; font-size: 0.95rem; min-height: 140px; resize: vertical; }
+    textarea:focus { outline: none; border-color: #f97316; }
+    .btn { display: block; width: 100%; padding: 16px; background: linear-gradient(135deg,#f97316,#ef4444); color: #fff; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .back { display: inline-block; margin-top: 16px; color: #3b82f6; text-decoration: none; font-size: 0.9rem; }
+    .back:hover { text-decoration: underline; }
+    .order-id { margin-top: 20px; font-size: 0.8rem; color: #555; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>✏️ Запросить правки</h1>
+    <p class="sub">Заказ #{{ order_id }} · {{ order.name }}<br>Опишите что нужно изменить — AI-агент внесёт правки и пришлёт обновлённую версию.</p>
+    <form method="POST">
+      <div class="q-group">
+        <label for="revision">Что изменить?</label>
+        <textarea id="revision" name="revision" placeholder="Например: поменять цвета на синие, добавить раздел с отзывами, исправить контакты..."></textarea>
+      </div>
+      <button type="submit" class="btn">Отправить правки →</button>
+    </form>
+    <a href="{{ base_url }}/order/{{ order_id }}/site" class="back">← Назад к сайту</a>
+    <div class="order-id">Заказ #{{ order_id }}</div>
+  </div>
+</body>
+</html>
