@@ -121,17 +121,17 @@ def _send_email(to, subject, html, reply_to=None):
         if reply_to:
             msg["Reply-To"] = reply_to
         msg.attach(MIMEText(html, "html"))
-        if SMTP_PORT == 465:
-            srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15)
-        else:
-            srv = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
-            srv.starttls()
+        srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15)
         srv.login(SMTP_USER, SMTP_PASS)
         srv.sendmail(SMTP_FROM, [to], msg.as_string())
         srv.quit()
         log.info(f"email sent to {to}")
+    except smtplib.SMTPAuthenticationError:
+        log.error(f"SMTP auth fail — check SMTP_USER/SMTP_PASS (use app password!)")
+    except smtplib.SMTPConnectError:
+        log.error(f"SMTP connect fail — check SMTP_SERVER/SMTP_PORT ({SMTP_SERVER}:{SMTP_PORT})")
     except Exception as e:
-        log.error(f"email fail: {e}")
+        log.error(f"email fail: {e} [{SMTP_SERVER}:{SMTP_PORT}]")
 
 
 def generate_site(answers):
@@ -249,7 +249,42 @@ def send_site_email(name, email, order_id):
 
 @app.route("/")
 def index():
-    return "SiteForge AI Bot is running"
+    return f"SiteForge AI Bot is running<br><a href='/debug'>Debug SMTP</a>"
+
+@app.route("/debug")
+def debug_smtp():
+    if not SMTP_USER or not SMTP_PASS:
+        return "SMTP not configured. Set SMTP_USER and SMTP_PASS env vars."
+    import html as h
+    lines = []
+    lines.append(f"<b>SMTP Server:</b> {h.escape(SMTP_SERVER)}:{SMTP_PORT}<br>")
+    lines.append(f"<b>SMTP User:</b> {h.escape(SMTP_USER)}<br>")
+    lines.append(f"<b>SMTP From:</b> {h.escape(SMTP_FROM)}<br>")
+    lines.append("<b>Testing connection...</b><br><br>")
+    try:
+        srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
+        srv.login(SMTP_USER, SMTP_PASS)
+        srv.quit()
+        lines.append("<span style='color:green'>\u2705 SMTP connection OK! Auth successful.</span><br>")
+        msg = MIMEMultipart("alternative")
+        msg["From"] = SMTP_FROM
+        msg["To"] = SMTP_USER
+        msg["Subject"] = "SiteForge Bot - SMTP Test"
+        msg.attach(MIMEText("<h1>Test</h1><p>SMTP works!</p>", "html"))
+        srv2 = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
+        srv2.login(SMTP_USER, SMTP_PASS)
+        srv2.sendmail(SMTP_FROM, [SMTP_USER], msg.as_string())
+        srv2.quit()
+        lines.append(f"<span style='color:green'>\u2705 Test email sent to {h.escape(SMTP_USER)}</span><br>")
+    except smtplib.SMTPAuthenticationError:
+        lines.append("<span style='color:red'>\u274C SMTP Auth error. Generate APP PASSWORD on mail.ru:</span><br>")
+        lines.append("1. https://mail.ru -> \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 -> \u041f\u0430\u0440\u043e\u043b\u044c \u0438 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u044c<br>")
+        lines.append("2. \u041f\u0430\u0440\u043e\u043b\u044c \u0434\u043b\u044f \u0432\u043d\u0435\u0448\u043d\u0435\u0433\u043e \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u044f -> \u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c<br>")
+        lines.append("3. \u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435: SiteForge Bot<br>")
+        lines.append("4. \u0421\u043a\u043e\u043f\u0438\u0440\u0443\u0439\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c \u0438 \u0437\u0430\u043f\u0438\u0448\u0438\u0442\u0435 \u0432 SMTP_PASS<br>")
+    except Exception as e:
+        lines.append(f"<span style='color:red'>\u274C Error: {h.escape(str(e))}</span><br>")
+    return "".join(lines)
 
 
 @app.route("/webhook", methods=["POST"])
