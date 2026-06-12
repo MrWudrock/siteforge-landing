@@ -19,6 +19,7 @@ CORS(app)
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8634108372:AAFD4jb69EGfqsNQr1ySLR6C0gB-IzlaDEE")
 CHAT_ID = os.environ.get("CHAT_ID", "1000583946")
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 SMTP_SERVER = os.environ.get("SMTP_SERVER", "")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "")
@@ -152,55 +153,138 @@ def _send_email(to, subject, html, reply_to=None):
         log.error(f"SMTP fail: {e}")
 
 
-def generate_site(answers):
-    if not OPENAI_KEY:
-        return "<html><body><h1>Demo site</h1><p>AI not configured</p></body></html>"
-
-    tz_parts = []
+def build_tz_text(answers):
+    parts = []
     for q in CLARIFYING_QUESTIONS:
         val = answers.get(q["key"], "").strip()
         if val:
-            tz_parts.append(f"{q['q']} {val}")
-    tz_text = "\n".join(tz_parts)
+            parts.append(f"{q['q']} {val}")
+    revision = answers.get("_revision", "").strip()
+    if revision:
+        parts.append(f"\u041F\u0440\u0430\u0432\u043A\u0438 \u043A\u043B\u0438\u0435\u043D\u0442\u0430: {revision}")
+    return "\n".join(parts)
 
-    prompt = f"""\
-{SYSTEM_PROMPT}
 
-\u0422\u0415\u0425\u041D\u0418\u0427\u0415\u0421\u041A\u041E\u0415 \u0417\u0410\u0414\u0410\u041D\u0418\u0415:
-{tz_text}
-
-\u0421\u043E\u0437\u0434\u0430\u0439 \u043F\u043E\u043B\u043D\u044B\u0439 \u0444\u0430\u0439\u043B index.html \u0441\u043E \u0432\u0441\u0442\u0440\u043E\u0435\u043D\u043D\u044B\u043C\u0438 CSS \u0438 JS.
-"""
-
-    try:
-        resp = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers={"Authorization": f"Bearer {OPENAI_KEY}",
-                     "Content-Type": "application/json"},
-            json={
-                "model": "gpt-4o-mini",
-                "messages": [{"role": "system", "content": SYSTEM_PROMPT},
-                             {"role": "user", "content": tz_text}],
-                "temperature": 0.7,
-                "max_tokens": 8192
-            },
-            timeout=120
-        )
-        if resp.status_code != 200:
-            log.error(f"OpenAI error: {resp.text}")
-            return None
-        html = resp.json()["choices"][0]["message"]["content"]
-        html = html.strip()
-        if html.startswith("```html"):
-            html = html[7:]
-        if html.startswith("```"):
-            html = html[3:]
-        if html.endswith("```"):
-            html = html[:-3]
-        return html.strip()
-    except Exception as e:
-        log.error(f"generate fail: {e}")
+def call_openai(tz_text):
+    resp = requests.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers={"Authorization": f"Bearer {OPENAI_KEY}", "Content-Type": "application/json"},
+        json={"model": "gpt-4o-mini", "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": tz_text}
+        ], "temperature": 0.7, "max_tokens": 8192},
+        timeout=120
+    )
+    if resp.status_code != 200:
+        log.error(f"OpenAI error: {resp.status_code} {resp.text[:200]}")
         return None
+    html = resp.json()["choices"][0]["message"]["content"]
+    html = html.strip()
+    if html.startswith("```html"): html = html[7:]
+    elif html.startswith("```"): html = html[3:]
+    if html.endswith("```"): html = html[:-3]
+    return html.strip()
+
+
+def call_claude(tz_text):
+    resp = requests.post(
+        "https://api.anthropic.com/v1/messages",
+        headers={"x-api-key": ANTHROPIC_KEY, "anthropic-version": "2023-06-01",
+                 "Content-Type": "application/json"},
+        json={
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 8192,
+            "system": SYSTEM_PROMPT,
+            "messages": [{"role": "user", "content": tz_text}]
+        },
+        timeout=120
+    )
+    if resp.status_code != 200:
+        log.error(f"Claude error: {resp.status_code} {resp.text[:200]}")
+        return None
+    html = resp.json()["content"][0]["text"]
+    html = html.strip()
+    if html.startswith("```html"): html = html[7:]
+    elif html.startswith("```"): html = html[3:]
+    if html.endswith("```"): html = html[:-3]
+    return html.strip()
+
+
+def generate_demo(tz_text, name):
+    return f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{name} — SiteForge AI</title>
+<style>
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:'Segoe UI',sans-serif;background:#0a0a0f;color:#e8e8f0;line-height:1.6}}
+.hero{{padding:80px 20px;text-align:center;background:linear-gradient(135deg,#0a0a0f 0%,#1a1a2e 100%)}}
+.hero h1{{font-size:clamp(2rem,5vw,3rem);background:linear-gradient(135deg,#3b82f6,#8b5cf6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}}
+.hero p{{color:#8888a0;font-size:1.1rem;max-width:600px;margin:0 auto 32px}}
+.container{{max-width:1100px;margin:0 auto;padding:0 20px}}
+.section{{padding:60px 0;border-bottom:1px solid rgba(255,255,255,0.05)}}
+.section h2{{font-size:1.8rem;margin-bottom:24px;color:#3b82f6}}
+.section p{{color:#b0b0c0}}
+.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;margin-top:24px}}
+.card{{background:#12121a;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px}}
+.card h3{{margin-bottom:8px;font-size:1.1rem}}
+.card p{{color:#8888a0;font-size:0.95rem}}
+.contact{{padding:60px 20px;text-align:center;background:linear-gradient(135deg,#12121a 0%,#0a0a0f 100%)}}
+.contact h2{{font-size:1.8rem;margin-bottom:16px}}
+.btn{{display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;margin-top:16px}}
+@media(max-width:768px){{.hero{{padding:40px 20px}}}}
+</style>
+</head>
+<body>
+<section class="hero">
+<h1>{name}</h1>
+<p>Сайт создан AI-агентом SiteForge AI. Заполните этот шаблон своими данными.</p>
+<a class="btn" href="#contact">Связаться</a>
+</section>
+<section class="section">
+<div class="container">
+<h2>О нас</h2>
+<p>Мы — {name}. Добавьте сюда описание вашей компании,产品或 услуг.</p>
+<div class="grid">
+<div class="card"><h3>Услуга 1</h3><p>Опишите первую услугу</p></div>
+<div class="card"><h3>Услуга 2</h3><p>Опишите вторую услугу</p></div>
+<div class="card"><h3>Услуга 3</h3><p>Опишите третью услугу</p></div>
+</div>
+</div>
+</section>
+<section class="contact" id="contact">
+<div class="container">
+<h2>Свяжитесь с нами</h2>
+<p>Телефон: +7 (999) 000-00-00<br>Email: info@{name.lower().replace(' ','')}.ru</p>
+</div>
+</section>
+</body>
+</html>"""
+
+
+def generate_site(answers):
+    name = answers.get("business_type", "Мой сайт").strip() or "Мой сайт"
+    tz_text = build_tz_text(answers)
+
+    if not tz_text.strip():
+        tz_text = "Создай одностраничный сайт с секциями: герой, о нас, услуги, контакты."
+
+    if ANTHROPIC_KEY:
+        log.info("Trying Claude...")
+        result = call_claude(tz_text)
+        if result:
+            return result
+
+    if OPENAI_KEY:
+        log.info("Trying OpenAI...")
+        result = call_openai(tz_text)
+        if result:
+            return result
+
+    log.info("No AI keys configured, using demo template")
+    return generate_demo(tz_text, name)
 
 
 def make_zip(order_id, html_content):
