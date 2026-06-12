@@ -535,7 +535,6 @@ def download_site(order_id):
             buf,
             mimetype="application/zip",
             as_attachment=True,
-            attachment_filename=f"siteforge-{order_id}.zip",
             download_name=f"siteforge-{order_id}.zip"
         )
     except Exception as e:
