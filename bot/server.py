@@ -522,13 +522,18 @@ def download_site(order_id):
     order = get_order(order_id)
     if not order or not order.get("html"):
         return "<h1>Not available</h1>", 404
-    buf = make_zip(order_id, order["html"])
-    return send_file(
-        buf,
-        mimetype="application/zip",
-        as_attachment=True,
-        download_name=f"siteforge-{order_id}.zip"
-    )
+    try:
+        buf = make_zip(order_id, order["html"])
+        return send_file(
+            buf,
+            mimetype="application/zip",
+            as_attachment=True,
+            attachment_filename=f"siteforge-{order_id}.zip",
+            download_name=f"siteforge-{order_id}.zip"
+        )
+    except Exception as e:
+        log.error(f"download fail: {e}")
+        return f"<h1>Error creating archive</h1><p>{e}</p>", 500
 
 
 @app.route("/order/<order_id>/revision", methods=["GET"])
