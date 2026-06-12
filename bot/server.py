@@ -19,11 +19,13 @@ CORS(app)
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8634108372:AAFD4jb69EGfqsNQr1ySLR6C0gB-IzlaDEE")
 CHAT_ID = os.environ.get("CHAT_ID", "1000583946")
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
-SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.yandex.ru")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
+SMTP_SERVER = os.environ.get("SMTP_SERVER", "")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USER)
+SENDGRID_KEY = os.environ.get("SENDGRID_API_KEY", "")
+SENDGRID_FROM = os.environ.get("SENDGRID_FROM", "paternmod@gmail.com")
 BASE_URL = os.environ.get("BASE_URL", "https://siteforge-bot.onrender.com")
 BOT_URL = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
@@ -110,6 +112,32 @@ def send_email(to, subject, html, reply_to=None):
     tpool.submit(_send_email, to, subject, html, reply_to)
 
 def _send_email(to, subject, html, reply_to=None):
+    # Try SendGrid first (works on Render)
+    if SENDGRID_KEY:
+        try:
+            resp = requests.post(
+                "https://api.sendgrid.com/v3/mail/send",
+                headers={
+                    "Authorization": f"Bearer {SENDGRID_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "personalizations": [{"to": [{"email": to}], "subject": subject}],
+                    "from": {"email": SENDGRID_FROM},
+                    "content": [{"type": "text/html", "value": html}]
+                },
+                timeout=15
+            )
+            if resp.status_code in (200, 201, 202):
+                log.info(f"email sent via SendGrid to {to}")
+                return
+            else:
+                log.error(f"SendGrid error {resp.status_code}: {resp.text}")
+        except Exception as e:
+            log.error(f"SendGrid fail: {e}")
+        return
+
+    # Fallback to SMTP
     if not SMTP_USER or not SMTP_PASS:
         log.info(f"[EMAIL MOCK] To: {to}, Subject: {subject}")
         return
@@ -123,20 +151,16 @@ def _send_email(to, subject, html, reply_to=None):
         msg.attach(MIMEText(html, "html"))
         use_ssl = (SMTP_PORT == 465)
         if use_ssl:
-            srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15)
+            srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
         else:
-            srv = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
+            srv = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10)
             srv.starttls()
         srv.login(SMTP_USER, SMTP_PASS)
         srv.sendmail(SMTP_FROM, [to], msg.as_string())
         srv.quit()
-        log.info(f"email sent to {to}")
-    except smtplib.SMTPAuthenticationError:
-        log.error(f"SMTP auth fail — check SMTP_USER/SMTP_PASS (use app password!)")
-    except smtplib.SMTPConnectError:
-        log.error(f"SMTP connect fail — check SMTP_SERVER/SMTP_PORT ({SMTP_SERVER}:{SMTP_PORT})")
+        log.info(f"email sent via SMTP to {to}")
     except Exception as e:
-        log.error(f"email fail: {e} [{SMTP_SERVER}:{SMTP_PORT}]")
+        log.error(f"SMTP fail: {e}")
 
 
 def generate_site(answers):
@@ -259,44 +283,31 @@ def index():
 @app.route("/debug")
 def debug_smtp():
     import html as h
-    lines = [f"<b>Config:</b> {h.escape(SMTP_SERVER)}:{SMTP_PORT} | User: {h.escape(SMTP_USER)}<br><br>"]
+    lines = []
 
-    if not SMTP_USER or not SMTP_PASS:
-        return "SMTP not configured. Set SMTP_USER and SMTP_PASS env vars."
-
-    try:
-        use_ssl = (SMTP_PORT == 465)
-        if use_ssl:
-            srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
-        else:
-            srv = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10)
-            srv.starttls()
-        srv.login(SMTP_USER, SMTP_PASS)
-        srv.quit()
-        lines.append("<span style='color:green'>\u2705 Auth OK!</span><br>")
-
-        msg = MIMEMultipart("alternative")
-        msg["From"] = SMTP_FROM
-        msg["To"] = SMTP_USER
-        msg["Subject"] = "SiteForge Bot - SMTP Test"
-        msg.attach(MIMEText("<h1>Test</h1><p>SMTP works!</p>", "html"))
-        if use_ssl:
-            srv2 = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=10)
-        else:
-            srv2 = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10)
-            srv2.starttls()
-        srv2.login(SMTP_USER, SMTP_PASS)
-        srv2.sendmail(SMTP_FROM, [SMTP_USER], msg.as_string())
-        srv2.quit()
-        lines.append(f"<span style='color:green'>\u2705 Test email sent!</span><br>")
-        lines.append(f"Check inbox: {h.escape(SMTP_USER)}<br>")
-    except smtplib.SMTPAuthenticationError:
-        lines.append("<span style='color:red'>\u274C SMTP Auth error.</span><br>")
-        lines.append("For mail.ru: Settings → Password and Security → App password → Generate<br>")
-        lines.append("Use that app password as SMTP_PASS (NOT your regular password).<br>")
-    except Exception as e:
-        lines.append(f"<span style='color:red'>\u274C {h.escape(str(e))}</span><br>")
-        lines.append("Tip: Try changing SMTP_PORT to 587 (STARTTLS) in env vars.<br>")
+    if SENDGRID_KEY:
+        lines.append(f"<b>SendGrid:</b> configured (key ends with ...{h.escape(SENDGRID_KEY[-8:])})<br>")
+        lines.append(f"<b>From:</b> {h.escape(SENDGRID_FROM)}<br><br>")
+        try:
+            resp = requests.post(
+                "https://api.sendgrid.com/v3/mail/send",
+                headers={"Authorization": f"Bearer {SENDGRID_KEY}", "Content-Type": "application/json"},
+                json={
+                    "personalizations": [{"to": [{"email": SENDGRID_FROM}], "subject": "SiteForge Bot - Test"}],
+                    "from": {"email": SENDGRID_FROM},
+                    "content": [{"type": "text/html", "value": "<h1>Test</h1><p>SendGrid works!</p>"}]
+                },
+                timeout=15
+            )
+            if resp.status_code in (200, 201, 202):
+                lines.append("<span style='color:green'>\u2705 SendGrid test email sent!</span><br>")
+            else:
+                lines.append(f"<span style='color:red'>\u274C SendGrid error {resp.status_code}: {h.escape(resp.text[:200])}</span><br>")
+        except Exception as e:
+            lines.append(f"<span style='color:red'>\u274C SendGrid error: {h.escape(str(e))}</span><br>")
+    else:
+        lines.append("<span style='color:orange'>\u26A0 SendGrid not configured.</span><br>")
+        lines.append(f"<b>SMTP:</b> {h.escape(SMTP_SERVER)}:{SMTP_PORT}<br>")
     return "".join(lines)
 
 
