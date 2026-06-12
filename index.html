@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Любой сайт за 1000₽ за 24 часа. AI-агент создаёт лендинг, магазин или портфолио по вашему запросу. Осталось 3 места сегодня.">
+  <title>Сайт за 1000₽ — AI создаёт за вас | SiteForge AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Sticky urgency bar -->
+  <div class="urgency-bar" id="urgencyBar">
+  <span class="urgency-pulse"></span>
+  <span>🔥 Акция: <strong>1000₽</strong> вместо 50 000₽ — осталось <strong id="slotsLeft">3</strong> места сегодня</span>
+  <span class="countdown" id="topCountdown">23:59:59</span>
+  </div>
+
+  <!-- Sticky CTA -->
+  <div class="sticky-cta" id="stickyCta">
+    <div class="sticky-cta-inner">
+      <span>Сайт за <strong>1000₽</strong> — готов за 24ч</span>
+      <a href="#order" class="btn btn-primary btn-sm">ЗАКАЗАТЬ СЕЙЧАС</a>
+    </div>
+  </div>
+
+  <header class="header">
+    <div class="container header-inner">
+      <a href="#" class="logo">
+        <span class="logo-icon">⚡</span>
+        SiteForge <span class="logo-accent">AI</span>
+      </a>
+      <nav class="nav">
+        <a href="#how">Как это работает</a>
+        <a href="#pricing">Цена</a>
+        <a href="#reviews">Отзывы</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a href="#order" class="btn btn-primary btn-header">Заказать за 1000₽</a>
+      <button class="burger" id="burger" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <nav class="mobile-nav" id="mobileNav">
+      <a href="#how">Как это работает</a>
+      <a href="#pricing">Цена</a>
+      <a href="#reviews">Отзывы</a>
+      <a href="#faq">FAQ</a>
+      <a href="#order" class="btn btn-primary">Заказать</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="container hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          AI-агент онлайн · 500+ сайтов создано
+        </div>
+        <h1>
+          Любой сайт за <span class="gradient-text">1000₽</span><br>
+          AI сделает за <span class="highlight">24 часа</span>
+        </h1>
+        <p class="hero-sub">
+          Опишите идею — наш AI-агент создаст лендинг, магазин, портфолио или корпоративный сайт.
+          Без программистов. Без ожидания неделями. Без переплат.
+        </p>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-num">500+</span>
+            <span class="stat-label">сайтов</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">24ч</span>
+            <span class="stat-label">срок</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">4.9★</span>
+            <span class="stat-label">рейтинг</span>
+          </div>
+        </div>
+        <div class="hero-cta">
+          <a href="#order" class="btn btn-primary btn-lg btn-glow">
+            ЗАКАЗАТЬ САЙТ ЗА 1000₽
+          </a>
+          <p class="hero-guarantee">✓ Гарантия возврата · ✓ 1 бесплатная правка</p>
+        </div>
+        <div class="hero-price-anchor">
+          <span class="old-price">Обычная цена: <s>50 000₽</s></span>
+          <span class="new-price">Сегодня: <strong>1 000₽</strong></span>
+          <span class="discount-badge">−98%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pain points -->
+    <section class="pain" id="pain">
+      <div class="container">
+        <h2 class="section-title">Пока вы думаете — конкуренты уже забирают клиентов</h2>
+        <p class="section-sub">Каждый день без сайта — это упущенная прибыль. Знакомо?</p>
+        <div class="pain-grid">
+          <div class="pain-card">
+            <span class="pain-icon">💸</span>
+            <h3>Студии берут 50–150 тыс.₽</h3>
+            <p>Веб-студия насчитает 80 000₽ за простой лендинг и 3 месяца ожидания. Фрилансер пропадёт на полпути.</p>
+          </div>
+          <div class="pain-card">
+            <span class="pain-icon">⏳</span>
+            <h3>Недели и месяцы разработки</h3>
+            <p>Пока вы ждёте ТЗ, макеты и правки — ваши клиенты уходят к тем, у кого сайт уже работает.</p>
+          </div>
+          <div class="pain-card">
+            <span class="pain-icon">🤯</span>
+            <h3>Вы не разбираетесь в коде</h3>
+            <p>Tilda, WordPress, хостинг, домен — голова кругом. Вам нужен результат, а не ещё одно хобби.</p>
+          </div>
+          <div class="pain-card pain-card-accent">
+            <span class="pain-icon">⚡</span>
+            <h3>Наш AI решает всё за 1000₽</h3>
+            <p>Опишите задачу словами — получите готовый сайт за сутки. Это не магия, это 2026 год.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="how" id="how">
+      <div class="container">
+        <h2 class="section-title">Как AI создаёт ваш сайт за 3 шага</h2>
+        <p class="section-sub">Проще, чем заказать пиццу</p>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <h3>Опишите идею</h3>
+              <p>Заполните форму: чем занимаетесь, какой стиль, что должно быть на сайте. 2 минуты — и готово.</p>
+            </div>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <h3>AI-агент строит сайт</h3>
+              <p>Наш AI-агент генерирует дизайн, тексты, структуру и код. Проверяет адаптивность и скорость.</p>
+            </div>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <h3>Получаете готовый сайт</h3>
+              <p>Через 24 часа — ссылка на живой сайт + исходники. Одна бесплатная правка включена.</p>
+            </div>
+          </div>
+        </div>
+        <div class="how-cta">
+          <a href="#order" class="btn btn-primary">Начать прямо сейчас →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison -->
+    <section class="compare">
+      <div class="container">
+        <h2 class="section-title">Почему мы, а не они?</h2>
+        <div class="compare-table-wrap">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th class="col-us">SiteForge AI</th>
+                <th>Веб-студия</th>
+                <th>Фрилансер</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Цена</td>
+                <td class="col-us"><strong>1 000₽</strong></td>
+                <td>50 000–150 000₽</td>
+                <td>15 000–40 000₽</td>
+              </tr>
+              <tr>
+                <td>Срок</td>
+                <td class="col-us"><strong>24 часа</strong></td>
+                <td>1–3 месяца</td>
+                <td>2–6 недель</td>
+              </tr>
+              <tr>
+                <td>Гарантия</td>
+                <td class="col-us">✓ Возврат денег</td>
+                <td>✗</td>
+                <td>✗</td>
+              </tr>
+              <tr>
+                <td>Бесплатная правка</td>
+                <td class="col-us">✓ 1 правка</td>
+                <td>✗ Платно</td>
+                <td>✗ Платно</td>
+              </tr>
+              <tr>
+                <td>Риск пропажи</td>
+                <td class="col-us">✓ Нет</td>
+                <td>Низкий</td>
+                <td>Высокий</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+      <div class="container">
+        <h2 class="section-title">Одна цена. Без сюрпризов.</h2>
+        <p class="section-sub">Пока акция действует — фиксированная стоимость</p>
+        <div class="pricing-card">
+          <div class="pricing-ribbon">ХИТ ПРОДАЖ</div>
+          <div class="pricing-header">
+            <h3>Любой сайт на заказ</h3>
+            <p>Лендинг · Магазин · Портфолио · Корпоративный</p>
+          </div>
+          <div class="pricing-price">
+            <span class="pricing-old"><s>50 000₽</s></span>
+            <span class="pricing-current">1 000<span>₽</span></span>
+            <span class="pricing-period">разово</span>
+          </div>
+          <ul class="pricing-features">
+            <li>✓ Уникальный дизайн от AI</li>
+            <li>✓ Адаптив под телефон и ПК</li>
+            <li>✓ SEO-базовая настройка</li>
+            <li>✓ Форма заявок / контакты</li>
+            <li>✓ Публикация на хостинг</li>
+            <li>✓ 1 бесплатная правка</li>
+            <li>✓ Гарантия возврата 7 дней</li>
+          </ul>
+          <div class="pricing-urgency">
+            <span class="countdown-label">Акция заканчивается через:</span>
+            <div class="countdown-big" id="pricingCountdown">23:59:59</div>
+            <span class="slots-text">Осталось мест: <strong id="slotsPricing">3</strong> из 5</span>
+          </div>
+          <a href="#order" class="btn btn-primary btn-lg btn-block btn-glow">
+            ЗАБРОНИРОВАТЬ ЗА 1000₽
+          </a>
+          <p class="pricing-note">Оплата после согласования ТЗ · Без скрытых платежей</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="reviews" id="reviews">
+      <div class="container">
+        <h2 class="section-title">500+ довольных клиентов</h2>
+        <p class="section-sub">Реальные отзывы — реальные результаты</p>
+        <div class="reviews-grid">
+          <div class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <p>«Заказала лендинг для салона красоты. На следующий день уже принимала записи онлайн. За 1000₽ — это безумие, в студии просили 60к.»</p>
+            <div class="review-author">
+              <div class="review-avatar">АК</div>
+              <div>
+                <strong>Анна К.</strong>
+                <span>Салон красоты, Москва</span>
+              </div>
+            </div>
+          </div>
+          <div class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <p>«Нужен был сайт для стройки — портфолио объектов, калькулятор. AI сделал за сутки. Клиенты звонят с сайта каждый день.»</p>
+            <div class="review-author">
+              <div class="review-avatar">ДМ</div>
+              <div>
+                <strong>Дмитрий М.</strong>
+                <span>Строительная компания, Казань</span>
+              </div>
+            </div>
+          </div>
+          <div class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <p>«Думала, за 1000₽ будет шаблонная фигня. Оказалось — полноценный магазин с каталогом. Уже 40+ заказов через сайт.»</p>
+            <div class="review-author">
+              <div class="review-avatar">ЕС</div>
+              <div>
+                <strong>Елена С.</strong>
+                <span>Handmade-магазин, СПб</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="reviews-counter">
+          <span>★ 4.9</span> средний рейтинг · <span>500+</span> сайтов · <span>98%</span> рекомендуют
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq">
+      <div class="container">
+        <h2 class="section-title">Частые вопросы</h2>
+        <div class="faq-list">
+          <details class="faq-item" open>
+            <summary>Какой сайт можно заказать за 1000₽?</summary>
+            <p>Лендинг, визитка, портфолио, каталог услуг, простой интернет-магазин, корпоративная страница. Опишите задачу — AI адаптируется под ваш бизнес.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Правда ли, что сайт будет готов за 24 часа?</summary>
+            <p>Да. AI-агент работает без перерывов. Простые проекты — за 12 часов. Сложные — до 48 часов, но мы предупредим заранее.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Что если мне не понравится результат?</summary>
+            <p>7 дней гарантии возврата денег. Плюс одна бесплатная правка — опишите, что изменить, и AI переделает.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Нужен ли мне хостинг и домен?</summary>
+            <p>Мы публикуем сайт на бесплатном хостинге. Домен (.ru) — от 200₽/год, поможем подключить за 5 минут.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Почему так дёшево?</summary>
+            <p>AI делает работу 10 программистов за минуты. Мы передаём экономию вам. Акция ограничена — скоро цена вырастет до 5000₽.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Order form -->
+    <section class="order" id="order">
+      <div class="container">
+        <div class="order-wrap">
+          <div class="order-info">
+            <h2>Закажите сайт прямо сейчас</h2>
+            <p>Заполните форму — мы свяжемся в течение <strong>15 минут</strong> и начнём работу.</p>
+            <ul class="order-benefits">
+              <li>🔥 Цена 1000₽ только сегодня</li>
+              <li>⚡ Старт работы в день обращения</li>
+              <li>🛡️ Гарантия возврата 7 дней</li>
+              <li>✏️ 1 бесплатная правка</li>
+            </ul>
+            <div class="order-slots">
+              <div class="slots-bar">
+                <div class="slots-fill" id="slotsBar" style="width: 60%"></div>
+              </div>
+              <span>Занято <strong id="slotsOrder">3</strong> из 5 мест на сегодня</span>
+            </div>
+          </div>
+          <form class="order-form" id="orderForm">
+            <div class="form-group">
+              <label for="name">Ваше имя *</label>
+              <input type="text" id="name" name="name" required placeholder="Иван Иванов">
+            </div>
+            <div class="form-group">
+              <label for="phone">Телефон *</label>
+              <input type="tel" id="phone" name="phone" required placeholder="+7 (999) 123-45-67">
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="ivan@mail.ru">
+            </div>
+            <div class="form-group">
+              <label for="description">Опишите ваш сайт *</label>
+              <textarea id="description" name="description" required rows="4" placeholder="Например: лендинг для кофейни, тёмный стиль, меню, адрес, форма бронирования столика..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg btn-block btn-glow">
+              ЗАКАЗАТЬ САЙТ ЗА 1000₽ →
+            </button>
+            <p class="form-privacy">Нажимая кнопку, вы соглашаетесь с <a href="#">политикой конфиденциальности</a></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <span class="logo-icon">⚡</span>
+          SiteForge <span class="logo-accent">AI</span>
+        </a>
+        <p>Любой сайт за 1000₽ с помощью AI-агента</p>
+      </div>
+      <div class="footer-links">
+        <a href="#">Политика конфиденциальности</a>
+        <a href="#">Публичная оферта</a>
+        <a href="GUIDE.md">Гайд для владельца</a>
+      </div>
+      <p class="footer-copy">© 2026 SiteForge AI. Все права защищены.</p>
+    </div>
+  </footer>
+
+  <!-- Success modal -->
+  <div class="modal" id="successModal" aria-hidden="true">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-icon">🎉</div>
+      <h3>Заявка принята!</h3>
+      <p>Мы свяжемся с вами в течение <strong>15 минут</strong> и начнём создавать ваш сайт.</p>
+      <button class="btn btn-primary" id="closeModal">Отлично!</button>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

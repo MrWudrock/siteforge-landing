@@ -1,0 +1,11 @@
+# Flask app (separate project)
+__pycache__/
+*.pyc
+templates/
+static/
+app.py
+requirements.txt
+
+# OS
+.DS_Store
+Thumbs.db
