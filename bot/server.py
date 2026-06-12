@@ -38,13 +38,19 @@ def load_orders():
         try:
             with open(ORDERS_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except:
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            log.error(f"load_orders corrupted file: {e}, returning empty")
             return {}
     return {}
 
 def save_orders(data):
-    with open(ORDERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    try:
+        with open(ORDERS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except (UnicodeEncodeError, TypeError, ValueError) as e:
+        log.error(f"save_orders failed with ensure_ascii=False: {e}, retrying with True")
+        with open(ORDERS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=True, indent=2)
 
 def get_order(order_id):
     orders = load_orders()
