@@ -34,7 +34,7 @@ symple site/
 
 | Что | Где | На что заменить |
 |-----|-----|-----------------|
-| Email для заявок | `js/script.js`, строка `orders@example.com` | Ваш реальный email |
+| Email для заявок | `js/script.js`, строка `mailto:flash83@list.ru` | Ваш реальный email |
 | Название бренда | `index.html` | Ваше название (если нужно) |
 | Ссылки на оферту и политику | `index.html`, footer | Реальные страницы |
 
@@ -445,5 +445,13 @@ Webhook (POST)
 - [Cursor](https://cursor.com) — AI-редактор для создания сайтов
 
 ---
+
+## Фактические URLs после деплоя
+
+| Ресурс | URL |
+|--------|-----|
+| Сайт | https://mrwudrock.github.io/siteforge-landing/ |
+| Telegram Bot API | https://siteforge-bot.onrender.com |
+| Webhook для заявок | https://siteforge-bot.onrender.com/webhook |
 
 *Гайд создан для проекта SiteForge AI. Обновляйте по мере развития сервиса.*
