@@ -1,7 +1,10 @@
-import os, json, uuid, io, zipfile, smtplib, logging
+import os, json, uuid, io, zipfile, smtplib, logging, threading
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
+
+tpool = ThreadPoolExecutor(max_workers=4)
 
 import requests
 from flask import Flask, request, jsonify, render_template, send_file, redirect, url_for
@@ -93,17 +96,23 @@ SYSTEM_PROMPT = """\
 
 
 def send_tg(msg):
+    tpool.submit(_send_tg, msg)
+
+def _send_tg(msg):
     try:
         requests.post(BOT_URL, json={"chat_id": CHAT_ID, "text": msg,
-                      "parse_mode": "HTML"}, timeout=10)
+                      "parse_mode": "HTML"}, timeout=15)
     except Exception as e:
         log.warning(f"tg send fail: {e}")
 
 
 def send_email(to, subject, html, reply_to=None):
+    tpool.submit(_send_email, to, subject, html, reply_to)
+
+def _send_email(to, subject, html, reply_to=None):
     if not SMTP_USER or not SMTP_PASS:
         log.info(f"[EMAIL MOCK] To: {to}, Subject: {subject}")
-        return True
+        return
     try:
         msg = MIMEMultipart("alternative")
         msg["From"] = SMTP_FROM
@@ -113,18 +122,16 @@ def send_email(to, subject, html, reply_to=None):
             msg["Reply-To"] = reply_to
         msg.attach(MIMEText(html, "html"))
         if SMTP_PORT == 465:
-            srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            srv = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15)
         else:
-            srv = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            srv = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
             srv.starttls()
         srv.login(SMTP_USER, SMTP_PASS)
         srv.sendmail(SMTP_FROM, [to], msg.as_string())
         srv.quit()
         log.info(f"email sent to {to}")
-        return True
     except Exception as e:
         log.error(f"email fail: {e}")
-        return False
 
 
 def generate_site(answers):
