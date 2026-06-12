@@ -11,11 +11,14 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <canvas id="particles-canvas"></canvas>
+  <canvas id="confetti-canvas"></canvas>
+
   <!-- Sticky urgency bar -->
   <div class="urgency-bar" id="urgencyBar">
-  <span class="urgency-pulse"></span>
-  <span>🔥 Акция: <strong>1000₽</strong> вместо 50 000₽ — осталось <strong id="slotsLeft">3</strong> места сегодня</span>
-  <span class="countdown" id="topCountdown">23:59:59</span>
+    <span class="urgency-pulse"></span>
+    <span>🔥 Акция: <strong>1000₽</strong> вместо 50 000₽ — осталось <strong id="slotsLeft">3</strong> места сегодня</span>
+    <span class="countdown" id="topCountdown">23:59:59</span>
   </div>
 
   <!-- Sticky CTA -->
@@ -52,44 +55,62 @@
     </nav>
   </header>
 
+  <!-- Running line -->
+  <div class="running-line-wrap">
+    <div class="running-line">
+      <span>⚡ <strong>500+</strong> сайтов уже создано</span>
+      <span>⭐ <strong>4.9</strong> средний рейтинг</span>
+      <span>🚀 Готовность за <strong>24 часа</strong></span>
+      <span>🔥 Цена <strong>1000₽</strong> до конца дня</span>
+      <span>🛡️ <strong>7 дней</strong> гарантия возврата</span>
+      <span>✏️ <strong>1</strong> бесплатная правка</span>
+      <span>⚡ <strong>500+</strong> сайтов уже создано</span>
+      <span>⭐ <strong>4.9</strong> средний рейтинг</span>
+      <span>🚀 Готовность за <strong>24 часа</strong></span>
+      <span>🔥 Цена <strong>1000₽</strong> до конца дня</span>
+      <span>🛡️ <strong>7 дней</strong> гарантия возврата</span>
+      <span>✏️ <strong>1</strong> бесплатная правка</span>
+    </div>
+  </div>
+
   <main>
     <!-- Hero -->
     <section class="hero">
       <div class="hero-bg"></div>
       <div class="container hero-content">
-        <div class="hero-badge">
+        <div class="hero-badge reveal">
           <span class="badge-dot"></span>
           AI-агент онлайн · 500+ сайтов создано
         </div>
-        <h1>
+        <h1 class="reveal">
           Любой сайт за <span class="gradient-text">1000₽</span><br>
           AI сделает за <span class="highlight">24 часа</span>
         </h1>
-        <p class="hero-sub">
+        <p class="hero-sub reveal">
           Опишите идею — наш AI-агент создаст лендинг, магазин, портфолио или корпоративный сайт.
           Без программистов. Без ожидания неделями. Без переплат.
         </p>
         <div class="hero-stats">
-          <div class="stat">
+          <div class="stat reveal">
             <span class="stat-num">500+</span>
             <span class="stat-label">сайтов</span>
           </div>
-          <div class="stat">
-            <span class="stat-num">24ч</span>
-            <span class="stat-label">срок</span>
+          <div class="stat reveal">
+            <span class="stat-num">24</span>
+            <span class="stat-label">часа срок</span>
           </div>
-          <div class="stat">
-            <span class="stat-num">4.9★</span>
+          <div class="stat reveal">
+            <span class="stat-num">4.9</span>
             <span class="stat-label">рейтинг</span>
           </div>
         </div>
-        <div class="hero-cta">
+        <div class="hero-cta reveal">
           <a href="#order" class="btn btn-primary btn-lg btn-glow">
             ЗАКАЗАТЬ САЙТ ЗА 1000₽
           </a>
           <p class="hero-guarantee">✓ Гарантия возврата · ✓ 1 бесплатная правка</p>
         </div>
-        <div class="hero-price-anchor">
+        <div class="hero-price-anchor reveal">
           <span class="old-price">Обычная цена: <s>50 000₽</s></span>
           <span class="new-price">Сегодня: <strong>1 000₽</strong></span>
           <span class="discount-badge">−98%</span>
@@ -100,25 +121,25 @@
     <!-- Pain points -->
     <section class="pain" id="pain">
       <div class="container">
-        <h2 class="section-title">Пока вы думаете — конкуренты уже забирают клиентов</h2>
-        <p class="section-sub">Каждый день без сайта — это упущенная прибыль. Знакомо?</p>
+        <h2 class="section-title reveal">Пока вы думаете — конкуренты уже забирают клиентов</h2>
+        <p class="section-sub reveal">Каждый день без сайта — это упущенная прибыль. Знакомо?</p>
         <div class="pain-grid">
-          <div class="pain-card">
+          <div class="pain-card reveal-left">
             <span class="pain-icon">💸</span>
             <h3>Студии берут 50–150 тыс.₽</h3>
             <p>Веб-студия насчитает 80 000₽ за простой лендинг и 3 месяца ожидания. Фрилансер пропадёт на полпути.</p>
           </div>
-          <div class="pain-card">
+          <div class="pain-card reveal">
             <span class="pain-icon">⏳</span>
             <h3>Недели и месяцы разработки</h3>
             <p>Пока вы ждёте ТЗ, макеты и правки — ваши клиенты уходят к тем, у кого сайт уже работает.</p>
           </div>
-          <div class="pain-card">
+          <div class="pain-card reveal-right">
             <span class="pain-icon">🤯</span>
             <h3>Вы не разбираетесь в коде</h3>
             <p>Tilda, WordPress, хостинг, домен — голова кругом. Вам нужен результат, а не ещё одно хобби.</p>
           </div>
-          <div class="pain-card pain-card-accent">
+          <div class="pain-card pain-card-accent reveal-scale">
             <span class="pain-icon">⚡</span>
             <h3>Наш AI решает всё за 1000₽</h3>
             <p>Опишите задачу словами — получите готовый сайт за сутки. Это не магия, это 2026 год.</p>
@@ -130,26 +151,26 @@
     <!-- How it works -->
     <section class="how" id="how">
       <div class="container">
-        <h2 class="section-title">Как AI создаёт ваш сайт за 3 шага</h2>
-        <p class="section-sub">Проще, чем заказать пиццу</p>
+        <h2 class="section-title reveal">Как AI создаёт ваш сайт за 3 шага</h2>
+        <p class="section-sub reveal">Проще, чем заказать пиццу</p>
         <div class="steps">
-          <div class="step">
+          <div class="step reveal-left">
             <div class="step-num">01</div>
             <div class="step-content">
               <h3>Опишите идею</h3>
               <p>Заполните форму: чем занимаетесь, какой стиль, что должно быть на сайте. 2 минуты — и готово.</p>
             </div>
           </div>
-          <div class="step-connector"></div>
-          <div class="step">
+          <div class="step-connector reveal"></div>
+          <div class="step reveal-scale">
             <div class="step-num">02</div>
             <div class="step-content">
               <h3>AI-агент строит сайт</h3>
               <p>Наш AI-агент генерирует дизайн, тексты, структуру и код. Проверяет адаптивность и скорость.</p>
             </div>
           </div>
-          <div class="step-connector"></div>
-          <div class="step">
+          <div class="step-connector reveal"></div>
+          <div class="step reveal-right">
             <div class="step-num">03</div>
             <div class="step-content">
               <h3>Получаете готовый сайт</h3>
@@ -157,8 +178,8 @@
             </div>
           </div>
         </div>
-        <div class="how-cta">
-          <a href="#order" class="btn btn-primary">Начать прямо сейчас →</a>
+        <div class="how-cta reveal">
+          <a href="#order" class="btn btn-primary btn-lg btn-glow">Начать прямо сейчас →</a>
         </div>
       </div>
     </section>
@@ -166,8 +187,8 @@
     <!-- Comparison -->
     <section class="compare">
       <div class="container">
-        <h2 class="section-title">Почему мы, а не они?</h2>
-        <div class="compare-table-wrap">
+        <h2 class="section-title reveal">Почему мы, а не они?</h2>
+        <div class="compare-table-wrap reveal-scale">
           <table class="compare-table">
             <thead>
               <tr>
@@ -178,36 +199,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Цена</td>
-                <td class="col-us"><strong>1 000₽</strong></td>
-                <td>50 000–150 000₽</td>
-                <td>15 000–40 000₽</td>
-              </tr>
-              <tr>
-                <td>Срок</td>
-                <td class="col-us"><strong>24 часа</strong></td>
-                <td>1–3 месяца</td>
-                <td>2–6 недель</td>
-              </tr>
-              <tr>
-                <td>Гарантия</td>
-                <td class="col-us">✓ Возврат денег</td>
-                <td>✗</td>
-                <td>✗</td>
-              </tr>
-              <tr>
-                <td>Бесплатная правка</td>
-                <td class="col-us">✓ 1 правка</td>
-                <td>✗ Платно</td>
-                <td>✗ Платно</td>
-              </tr>
-              <tr>
-                <td>Риск пропажи</td>
-                <td class="col-us">✓ Нет</td>
-                <td>Низкий</td>
-                <td>Высокий</td>
-              </tr>
+              <tr><td>Цена</td><td class="col-us"><strong>1 000₽</strong></td><td>50 000–150 000₽</td><td>15 000–40 000₽</td></tr>
+              <tr><td>Срок</td><td class="col-us"><strong>24 часа</strong></td><td>1–3 месяца</td><td>2–6 недель</td></tr>
+              <tr><td>Гарантия</td><td class="col-us">✓ Возврат денег</td><td>✗</td><td>✗</td></tr>
+              <tr><td>Бесплатная правка</td><td class="col-us">✓ 1 правка</td><td>✗ Платно</td><td>✗ Платно</td></tr>
+              <tr><td>Риск пропажи</td><td class="col-us">✓ Нет</td><td>Низкий</td><td>Высокий</td></tr>
             </tbody>
           </table>
         </div>
@@ -217,9 +213,9 @@
     <!-- Pricing -->
     <section class="pricing" id="pricing">
       <div class="container">
-        <h2 class="section-title">Одна цена. Без сюрпризов.</h2>
-        <p class="section-sub">Пока акция действует — фиксированная стоимость</p>
-        <div class="pricing-card">
+        <h2 class="section-title reveal">Одна цена. Без сюрпризов.</h2>
+        <p class="section-sub reveal">Пока акция действует — фиксированная стоимость</p>
+        <div class="pricing-card reveal-scale">
           <div class="pricing-ribbon">ХИТ ПРОДАЖ</div>
           <div class="pricing-header">
             <h3>Любой сайт на заказ</h3>
@@ -255,10 +251,10 @@
     <!-- Testimonials -->
     <section class="reviews" id="reviews">
       <div class="container">
-        <h2 class="section-title">500+ довольных клиентов</h2>
-        <p class="section-sub">Реальные отзывы — реальные результаты</p>
+        <h2 class="section-title reveal">500+ довольных клиентов</h2>
+        <p class="section-sub reveal">Реальные отзывы — реальные результаты</p>
         <div class="reviews-grid">
-          <div class="review-card">
+          <div class="review-card reveal-left">
             <div class="review-stars">★★★★★</div>
             <p>«Заказала лендинг для салона красоты. На следующий день уже принимала записи онлайн. За 1000₽ — это безумие, в студии просили 60к.»</p>
             <div class="review-author">
@@ -269,7 +265,7 @@
               </div>
             </div>
           </div>
-          <div class="review-card">
+          <div class="review-card reveal">
             <div class="review-stars">★★★★★</div>
             <p>«Нужен был сайт для стройки — портфолио объектов, калькулятор. AI сделал за сутки. Клиенты звонят с сайта каждый день.»</p>
             <div class="review-author">
@@ -280,7 +276,7 @@
               </div>
             </div>
           </div>
-          <div class="review-card">
+          <div class="review-card reveal-right">
             <div class="review-stars">★★★★★</div>
             <p>«Думала, за 1000₽ будет шаблонная фигня. Оказалось — полноценный магазин с каталогом. Уже 40+ заказов через сайт.»</p>
             <div class="review-author">
@@ -292,7 +288,7 @@
             </div>
           </div>
         </div>
-        <div class="reviews-counter">
+        <div class="reviews-counter reveal">
           <span>★ 4.9</span> средний рейтинг · <span>500+</span> сайтов · <span>98%</span> рекомендуют
         </div>
       </div>
@@ -301,25 +297,25 @@
     <!-- FAQ -->
     <section class="faq" id="faq">
       <div class="container">
-        <h2 class="section-title">Частые вопросы</h2>
+        <h2 class="section-title reveal">Частые вопросы</h2>
         <div class="faq-list">
-          <details class="faq-item" open>
+          <details class="faq-item reveal" open>
             <summary>Какой сайт можно заказать за 1000₽?</summary>
             <p>Лендинг, визитка, портфолио, каталог услуг, простой интернет-магазин, корпоративная страница. Опишите задачу — AI адаптируется под ваш бизнес.</p>
           </details>
-          <details class="faq-item">
+          <details class="faq-item reveal-left">
             <summary>Правда ли, что сайт будет готов за 24 часа?</summary>
             <p>Да. AI-агент работает без перерывов. Простые проекты — за 12 часов. Сложные — до 48 часов, но мы предупредим заранее.</p>
           </details>
-          <details class="faq-item">
+          <details class="faq-item reveal-right">
             <summary>Что если мне не понравится результат?</summary>
             <p>7 дней гарантии возврата денег. Плюс одна бесплатная правка — опишите, что изменить, и AI переделает.</p>
           </details>
-          <details class="faq-item">
+          <details class="faq-item reveal-left">
             <summary>Нужен ли мне хостинг и домен?</summary>
             <p>Мы публикуем сайт на бесплатном хостинге. Домен (.ru) — от 200₽/год, поможем подключить за 5 минут.</p>
           </details>
-          <details class="faq-item">
+          <details class="faq-item reveal-right">
             <summary>Почему так дёшево?</summary>
             <p>AI делает работу 10 программистов за минуты. Мы передаём экономию вам. Акция ограничена — скоро цена вырастет до 5000₽.</p>
           </details>
@@ -331,7 +327,7 @@
     <section class="order" id="order">
       <div class="container">
         <div class="order-wrap">
-          <div class="order-info">
+          <div class="order-info reveal-left">
             <h2>Закажите сайт прямо сейчас</h2>
             <p>Заполните форму — мы свяжемся в течение <strong>15 минут</strong> и начнём работу.</p>
             <ul class="order-benefits">
@@ -347,7 +343,7 @@
               <span>Занято <strong id="slotsOrder">3</strong> из 5 мест на сегодня</span>
             </div>
           </div>
-          <form class="order-form" id="orderForm">
+          <form class="order-form reveal-right" id="orderForm">
             <div class="form-group">
               <label for="name">Ваше имя *</label>
               <input type="text" id="name" name="name" required placeholder="Иван Иванов">
@@ -397,14 +393,14 @@
     <div class="modal-overlay"></div>
     <div class="modal-content">
       <div class="modal-icon">🎉</div>
-      <h3>Заявка принята!</h3>
+      <h3>🎊 Поздравляем! Заявка принята!</h3>
       <p>Ваш заказ <strong>#<span id="modalOrderId">---</span></strong></p>
       <p>Сохраните ссылку — по ней вы сможете настроить сайт, скачать его и запросить правки:</p>
-      <p style="word-break:break-all;background:#1a1a26;padding:12px;border-radius:8px;font-size:0.85rem;margin:12px 0;">
-        <a href="#" id="modalOrderLink" style="color:#3b82f6;">Загрузка...</a>
+      <p style="word-break:break-all;background:#fef7f0;padding:12px;border-radius:8px;font-size:0.85rem;margin:12px 0;border:1px solid #f0e6dc;">
+        <a href="#" id="modalOrderLink" style="color:#f59e0b;font-weight:600;">Загрузка...</a>
       </p>
-      <p style="color:#888;font-size:0.85rem;">Мы также увидели вашу заявку и свяжемся с вами в ближайшее время.</p>
-      <button class="btn btn-primary" id="closeModal">Отлично, понял!</button>
+      <p style="color:#8c7b70;font-size:0.85rem;">Мы уже увидели вашу заявку и скоро свяжемся. Приготовьте ТЗ — AI ждёт ваших идей! 🚀</p>
+      <button class="btn btn-primary" id="closeModal">Отлично, жду!</button>
     </div>
   </div>
 
