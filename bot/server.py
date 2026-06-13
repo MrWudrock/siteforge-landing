@@ -244,20 +244,21 @@ def call_claude(tz_text):
     return html.strip()
 
 
-def call_proxyapi(tz_text):
+def call_gemini(tz_text):
     resp = requests.post(
-        "https://api.proxyapi.ru/openai/v1/chat/completions",
+        "https://api.proxyapi.ru/google/v1beta/models/gemini-3.1-flash-lite:generateContent",
         headers={"Authorization": f"Bearer {PROXYAPI_KEY}", "Content-Type": "application/json"},
-        json={"model": "gpt-4o-mini", "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": tz_text}
-        ], "temperature": 0.7, "max_tokens": 8192},
+        json={
+            "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "contents": [{"parts": [{"text": tz_text}]}],
+            "generationConfig": {"temperature": 0.7, "maxOutputTokens": 8192}
+        },
         timeout=120
     )
     if resp.status_code != 200:
-        log.error(f"ProxyAPI error: {resp.status_code} {resp.text[:200]}")
+        log.error(f"Gemini via ProxyAPI error: {resp.status_code} {resp.text[:200]}")
         return None
-    html = resp.json()["choices"][0]["message"]["content"]
+    html = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
     html = html.strip()
     if html.startswith("```html"): html = html[7:]
     elif html.startswith("```"): html = html[3:]
@@ -328,7 +329,7 @@ def generate_site(answers):
 
     if PROXYAPI_KEY:
         log.info("Trying ProxyAPI...")
-        result = call_proxyapi(tz_text)
+        result = call_gemini(tz_text)
         if result:
             return result
 
@@ -443,7 +444,7 @@ def debug_smtp():
     import html as h
     lines = []
 
-    lines.append(f"<b>ProxyAPI:</b> {'✅ configured' if PROXYAPI_KEY else '❌ not set'}<br>")
+    lines.append(f"<b>ProxyAPI (gemini-3.1-flash-lite):</b> {'✅ configured' if PROXYAPI_KEY else '❌ not set'}<br>")
     lines.append(f"<b>OpenAI:</b> {'✅ configured' if OPENAI_KEY else '❌ not set'}<br>")
     lines.append(f"<b>Claude:</b> {'✅ configured' if ANTHROPIC_KEY else '❌ not set'}<br><br>")
 
