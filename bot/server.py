@@ -1,4 +1,4 @@
-import os, json, uuid, io, zipfile, smtplib, logging, threading, sqlite3
+import os, json, uuid, io, zipfile, smtplib, logging, threading, sqlite3, re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -349,59 +349,69 @@ def generate_site(answers):
     return generate_demo(tz_text, name)
 
 
-def make_zip(order_id, html_content):
+def make_site_package(order_id, html_content):
     buf = io.BytesIO()
     revision_link = f"{BASE_URL}/order/{order_id}/revision"
     try:
         ztype = zipfile.ZIP_DEFLATED
     except:
         ztype = zipfile.ZIP_STORED
-    with zipfile.ZipFile(buf, "w", ztype) as z:
-        z.writestr("index.html", html_content)
-        instructions = f"""\
-==========================================
-  \u0421\u0430\u0439\u0442 \u0441\u043E\u0437\u0434\u0430\u043D AI-\u0430\u0433\u0435\u043D\u0442\u043E\u043C SiteForge AI
-  \u0417\u0430\u043A\u0430\u0437 #{order_id}
-  \u0414\u0430\u0442\u0430: {datetime.now().strftime('%d.%m.%Y %H:%M')}
-==========================================
 
-\u041A\u0410\u041A \u0417\u0410\u041F\u0423\u0421\u0422\u0418\u0422\u042C \u0421\u0410\u0419\u0422:
+    html = html_content
+    css_content = ""
+    js_content = ""
 
-\u0412\u0430\u0440\u0438\u0430\u043D\u0442 1 \u2014 \u041E\u0442\u043A\u0440\u044B\u0442\u044C \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u043E:
+    m_style = re.search(r"<style>(.*?)</style>", html, re.DOTALL)
+    if m_style:
+        css_content = m_style.group(1).strip()
+        html = html.replace(m_style.group(0), '<link rel="stylesheet" href="css/styles.css">')
+    else:
+        if '<link rel="stylesheet"' not in html:
+            html = html.replace("</title>", '</title>\n  <link rel="stylesheet" href="css/styles.css">')
+
+    m_script = re.search(r"<script>(.*?)</script>", html, re.DOTALL)
+    if m_script:
+        js_content = m_script.group(1).strip()
+        html = html.replace(m_script.group(0), '<script src="js/script.js"></script>')
+    else:
+        if '<script src="js/script.js"' not in html:
+            html = html.replace("</body>", '  <script src="js/script.js"></script>\n</body>')
+
+    instructions = f"""\
+\u0421\u0430\u0439\u0442 \u0441\u043E\u0437\u0434\u0430\u043D AI-\u0430\u0433\u0435\u043D\u0442\u043E\u043C SiteForge AI
+\u0417\u0430\u043A\u0430\u0437 #{order_id}
+\u0414\u0430\u0442\u0430: {datetime.now().strftime('%d.%m.%Y %H:%M')}
+
+\u0421\u0422\u0420\u0423\u041A\u0422\u0423\u0420\u0410 \u0421\u0410\u0419\u0422\u0410:
+  index.html \u2014 \u0433\u043B\u0430\u0432\u043D\u0430\u044F \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0430
+  css/styles.css \u2014 \u0441\u0442\u0438\u043B\u0438
+  js/script.js \u2014 \u0441\u043A\u0440\u0438\u043F\u0442\u044B
+
+\u0427\u0422\u041E\u0411\u042B \u0418\u0417\u041C\u0415\u041D\u0418\u0422\u042C \u0421\u0410\u0419\u0422:
+- \u0422\u0435\u043A\u0441\u0442\u044B: \u043E\u0442\u043A\u0440\u043E\u0439\u0442\u0435 index.html \u0432 \u0431\u043B\u043E\u043A\u043D\u043E\u0442\u0435
+- \u0426\u0432\u0435\u0442\u0430/\u0448\u0440\u0438\u0444\u0442\u044B: css/styles.css
+- \u041B\u043E\u0433\u0438\u043A\u0443: js/script.js
+
+\u041A\u0410\u041A \u0417\u0410\u041F\u0423\u0421\u0422\u0418\u0422\u042C:
 1. \u0420\u0430\u0441\u043F\u0430\u043A\u0443\u0439\u0442\u0435 \u0430\u0440\u0445\u0438\u0432
 2. \u0414\u0432\u0430\u0436\u0434\u044B \u043A\u043B\u0438\u043A\u043D\u0438\u0442\u0435 index.html
 3. \u0421\u0430\u0439\u0442 \u043E\u0442\u043A\u0440\u043E\u0435\u0442\u0441\u044F \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0435
 
-\u0412\u0430\u0440\u0438\u0430\u043D\u0442 2 \u2014 \u041E\u043F\u0443\u0431\u043B\u0438\u043A\u043E\u0432\u0430\u0442\u044C \u0432 \u0438\u043D\u0442\u0435\u0440\u043D\u0435\u0442\u0435:
+\u041A\u0410\u041A \u041E\u041F\u0423\u0411\u041B\u0418\u041A\u041E\u0412\u0410\u0422\u042C \u0412 \u0418\u041D\u0422\u0415\u0420\u041D\u0415\u0422\u0415:
+- Netlify: https://app.netlify.com/drop (\u043F\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 \u043F\u0430\u043F\u043A\u0443)
+- GitHub Pages: \u0441\u043E\u0437\u0434\u0430\u0439\u0442\u0435 \u0440\u0435\u043F\u043E\u0437\u0438\u0442\u043E\u0440\u0438\u0439 \u0438 \u0437\u0430\u043B\u0435\u0439\u0442\u0435 \u0432\u0441\u0435 \u0444\u0430\u0439\u043B\u044B
+- Vercel: https://vercel.com/new
 
---- Netlify (\u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E, 2 \u043A\u043B\u0438\u043A\u0430) ---
-1. \u0417\u0430\u0439\u0434\u0438\u0442\u0435 \u043D\u0430 https://app.netlify.com/drop
-2. \u041F\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 \u043F\u0430\u043F\u043A\u0443 \u0441 \u0441\u0430\u0439\u0442\u043E\u043C \u0432 \u043E\u043A\u043D\u043E
-3. \u0413\u043E\u0442\u043E\u0432\u043E! \u0421\u0441\u044B\u043B\u043A\u0430 \u0432\u0438\u0434\u0430 site-name.netlify.app
-
---- GitHub Pages ---
-1. \u0421\u043E\u0437\u0434\u0430\u0439\u0442\u0435 \u0440\u0435\u043F\u043E\u0437\u0438\u0442\u043E\u0440\u0438\u0439 \u043D\u0430 github.com
-2. \u0417\u0430\u043B\u0435\u0439\u0442\u0435 \u0444\u0430\u0439\u043B\u044B
-3. Settings \u2192 Pages \u2192 \u0432\u043A\u043B\u044E\u0447\u0438\u0442\u0435 GitHub Pages
-4. \u0421\u0430\u0439\u0442 \u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D \u043F\u043E \u0430\u0434\u0440\u0435\u0441\u0443 \u0432\u0430\u0448-\u043B\u043E\u0433\u0438\u043D.github.io/\u0438\u043C\u044F-\u0440\u0435\u043F\u043E
-
---- Vercel ---
-1. \u0417\u0430\u0439\u0434\u0438\u0442\u0435 \u043D\u0430 https://vercel.com/new
-2. \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u043F\u0430\u043F\u043A\u0443 \u0441 \u0441\u0430\u0439\u0442\u043E\u043C
-3. \u041D\u0430\u0436\u043C\u0438\u0442\u0435 Deploy
-4. \u0413\u043E\u0442\u043E\u0432\u043E!
-
-\u041F\u041E\u041B\u0415\u0417\u041D\u042B\u0415 \u0421\u0421\u042B\u041B\u041A\u0418:
-- \u041A\u0443\u043F\u0438\u0442\u044C \u0434\u043E\u043C\u0435\u043D .ru: https://reg.ru
-- \u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u044B\u0439 \u0445\u043E\u0441\u0442\u0438\u043D\u0433: https://netlify.com
-- \u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u0441\u043A\u043E\u0440\u043E\u0441\u0442\u044C: https://pagespeed.web.dev
-
-\u041D\u0443\u0436\u043D\u044B \u043F\u0440\u0430\u0432\u043A\u0438? \u041E\u0441\u0442\u0430\u0432\u044C\u0442\u0435 \u0437\u0430\u044F\u0432\u043A\u0443:
-{revision_link}
-
-\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
+\u041D\u0443\u0436\u043D\u044B \u043F\u0440\u0430\u0432\u043A\u0438? {revision_link}
+\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
 SiteForge AI \u2014 \u041B\u044E\u0431\u043E\u0439 \u0441\u0430\u0439\u0442 \u0437\u0430 1000\u20BD
 """
+    with zipfile.ZipFile(buf, "w", ztype) as z:
+        z.writestr("index.html", html)
+        if css_content:
+            z.writestr("css/styles.css", css_content)
+        if js_content:
+            z.writestr("js/script.js", js_content)
         z.writestr("INSTRUCTION.txt", instructions)
     buf.seek(0)
     return buf
@@ -572,7 +582,7 @@ def download_site(order_id):
     if not order or not order.get("html"):
         return "<h1>Not available</h1>", 404
     try:
-        buf = make_zip(order_id, order["html"])
+        buf = make_site_package(order_id, order["html"])
         return send_file(
             buf,
             mimetype="application/zip",
