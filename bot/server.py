@@ -470,7 +470,21 @@ def debug_smtp():
     else:
         lines.append("<span style='color:orange'>\u26A0 SendGrid not configured.</span><br>")
         lines.append(f"<b>SMTP:</b> {h.escape(SMTP_SERVER)}:{SMTP_PORT}<br>")
+    lines.append(f'<br><a href="/setup-webhook" style="color:#f59e0b;font-weight:700;">🔄 Update Telegram webhook to bot.symplesite.ru</a><br>')
     return "".join(lines)
+
+
+@app.route("/setup-webhook")
+def setup_webhook():
+    url = f"https://bot.symplesite.ru/webhook"
+    try:
+        resp = requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url={url}", timeout=15)
+        data = resp.json()
+        if data.get("ok"):
+            return f"<h1>✅ Webhook updated to {url}</h1><pre>{resp.text}</pre>"
+        return f"<h1>❌ Error</h1><pre>{resp.text}</pre>"
+    except Exception as e:
+        return f"<h1>❌ Error</h1><p>{e}</p>"
 
 
 @app.route("/webhook", methods=["POST"])
